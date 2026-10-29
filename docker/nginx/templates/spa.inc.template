@@ -1,15 +1,20 @@
 # 화면 파일 (React). 없는 주소는 index.html로 보내 화면이 직접 처리한다.
 root /usr/share/nginx/html;
 
-add_header X-Content-Type-Options nosniff always;
-add_header Referrer-Policy same-origin always;
-add_header Permissions-Policy "geolocation=(self), camera=(), microphone=()" always;
-
 # 새 버전이 바로 반영되도록 index.html과 서비스워커는 캐시하지 않는다
-location = /index.html { add_header Cache-Control "no-cache"; }
-location = /sw.js { add_header Cache-Control "no-cache"; }
-location /assets/ { add_header Cache-Control "public, max-age=31536000, immutable"; }
-
+location = /index.html {
+  include /etc/nginx/conf.d/security.inc;
+  add_header Cache-Control "no-cache";
+}
+location = /sw.js {
+  include /etc/nginx/conf.d/security.inc;
+  add_header Cache-Control "no-cache";
+}
+location /assets/ {
+  include /etc/nginx/conf.d/security.inc;
+  add_header Cache-Control "public, max-age=31536000, immutable";
+}
 location / {
+  include /etc/nginx/conf.d/security.inc;
   try_files $uri $uri/ /index.html;
 }

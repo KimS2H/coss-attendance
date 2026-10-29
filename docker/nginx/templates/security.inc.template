@@ -1,0 +1,4 @@
+# 보안 헤더. Nginx는 location 안에 add_header가 하나라도 있으면 바깥 설정을 물려받지 않으므로 location마다 include한다.
+add_header X-Content-Type-Options nosniff always;
+add_header Referrer-Policy same-origin always;
+add_header Permissions-Policy "geolocation=(self), camera=(), microphone=()" always;
