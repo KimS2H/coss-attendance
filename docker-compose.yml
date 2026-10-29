@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────
+# 서버 PC 실행 구성. 사용법은 README.md "서버 PC에 설치하기".
+#   켜기:      docker compose up -d --build
+#   상태 보기: docker compose ps
+#   로그 보기: docker compose logs -f api
+# 비밀 값은 .env 파일에서 읽는다 (.env.example 참고, 저장소에 올리지 않음).
+# 모든 컨테이너는 멈추면 자동으로 다시 켜진다 (restart: unless-stopped).
+# ─────────────────────────────────────────────
+name: coss-attendance
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD를 .env에 적어 주세요}
+      POSTGRES_DB: coss
+      TZ: Asia/Seoul
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data # 학생·출석 데이터 (저장소에 올라가지 않음)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d coss"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # 세션·요청 횟수만 담으므로 디스크에 저장하지 않는다 (재시작하면 다시 로그인)
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: coss-attendance-api
+    restart: unless-stopped
+    environment: &api-env
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/coss
+      REDIS_URL: redis://redis:6379
+      APP_SECRET: ${APP_SECRET:?APP_SECRET을 .env에 적어 주세요}
+      ADMIN_GATE_SECRET: ${ADMIN_GATE_SECRET:?ADMIN_GATE_SECRET을 .env에 적어 주세요}
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      TZ: Asia/Seoul
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  worker:
+    image: coss-attendance-api
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    environment:
+      <<: *api-env
+      BACKUP_DIR: /backups
+    volumes:
+      - ./backups:/backups # 매일 03:00 DB 백업 (7일 보관, 저장소에 올라가지 않음)
+    depends_on:
+      api:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    restart: unless-stopped
+    environment:
+      ADMIN_GATE_SECRET: ${ADMIN_GATE_SECRET}
+    ports:
+      - "127.0.0.1:8080:8080" # 공개 입구 ← tailscale funnel
+      - "127.0.0.1:8081:8081" # 관리자 입구 ← tailscale serve
+    depends_on:
+      - api

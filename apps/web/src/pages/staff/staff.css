@@ -1,0 +1,128 @@
+/* ─────────────────────────────────────────────
+   인솔자(담당자) 화면 전용 스타일. 이름은 모두 sf- 로 시작한다.
+   노트북·태블릿 기준. 좁은 화면에서는 줄을 바꿔 보여 준다.
+   ───────────────────────────────────────────── */
+
+.sf-app { min-height: 100vh; background: var(--bg); }
+
+/* 남색 상단 막대 */
+.sf-topbar {
+  background: var(--navy-dark); color: #fff; padding: 8px 24px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px;
+}
+.sf-nav { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 480px; }
+.sf-nav a {
+  display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 10px;
+  color: var(--on-dark); font-size: 14px; font-weight: 500; text-decoration: none;
+}
+.sf-nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.sf-nav a.active { background: var(--navy); color: #fff; font-weight: 700; }
+.sf-count {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--warn-line); color: var(--navy-dark);
+  font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+}
+.sf-user { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--on-dark); }
+.sf-user strong { color: #fff; }
+.sf-icon-btn {
+  width: 44px; height: 44px; border: 0; background: transparent; color: var(--on-dark-2);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+/* 본문 */
+.sf-main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 48px; display: flex; flex-direction: column; gap: 20px; }
+@media (max-width: 640px) { .sf-main { padding: 20px 14px 40px; } .sf-topbar { padding: 8px 14px; } }
+.sf-title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.sf-title { margin: 0; font-size: 26px; font-weight: 700; color: var(--navy-dark); }
+.sf-sub { margin: 4px 0 0; font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+/* 필터 상자 */
+.sf-filters {
+  background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px;
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;
+}
+.sf-filters .field { margin: 0; flex: 1 1 160px; }
+.sf-filters .input, .sf-filters .select { min-height: 44px; font-size: 14px; }
+
+/* 요약 카드 */
+.sf-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.sf-stat { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.sf-stat span { font-size: 13px; color: var(--muted); }
+.sf-stat b { font-size: 28px; font-weight: 700; color: var(--navy-dark); }
+
+/* 표 안 작은 버튼 */
+.sf-small-btn {
+  min-height: 40px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: #fff;
+  font-size: 13px; color: var(--text-2); cursor: pointer; white-space: nowrap; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.sf-small-btn:hover { background: var(--tint); color: var(--text-2); }
+.sf-small-btn.primary { border-color: var(--navy); color: var(--navy); font-weight: 700; }
+.sf-small-btn.danger { border-color: #fecaca; color: var(--absent-text); }
+.sf-small-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.table tr.sf-suspicious td { background: #fff7f7; }
+.sf-table-foot {
+  border-top: 1px solid #e2e8f0; padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); background: #fff;
+}
+
+/* 탭 */
+.sf-tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); }
+.sf-tabs button {
+  min-height: 44px; padding: 0 16px; border: 0; border-bottom: 3px solid transparent; background: transparent;
+  color: var(--muted); font-size: 15px; font-weight: 500; cursor: pointer;
+}
+.sf-tabs button[aria-selected='true'] { border-bottom-color: var(--navy); color: var(--navy); font-weight: 700; }
+
+/* 안내 띠 */
+.sf-info { background: var(--tint); border-radius: 14px; padding: 14px 18px; font-size: 14px; color: var(--navy-dark); line-height: 1.6; }
+.sf-alert { padding: 10px 14px; border-radius: 10px; background: var(--absent-bg); color: var(--absent-text); font-size: 14px; line-height: 1.5; margin: 0; }
+.sf-ok { padding: 10px 14px; border-radius: 10px; background: var(--present-bg); color: var(--present-text); font-size: 14px; line-height: 1.5; margin: 0; }
+.sf-empty { padding: 32px 16px; text-align: center; color: var(--muted); font-size: 14px; }
+
+/* 기기 승인 카드 */
+.sf-device-card {
+  background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+  display: flex; flex-wrap: wrap; gap: 20px; align-items: center;
+}
+.sf-kv { flex: 1 1 520px; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px 20px; }
+.sf-kv div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sf-kv span { font-size: 12px; color: var(--muted); }
+.sf-kv b { font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+
+/* 문의함 */
+.sf-split { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.sf-list { flex: 1 1 300px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sf-list-item {
+  background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; text-align: left;
+  display: flex; flex-direction: column; gap: 4px; cursor: pointer; width: 100%;
+}
+.sf-list-item.selected { border: 2px solid var(--navy); padding: 13px 15px; }
+.sf-detail { flex: 2 1 520px; min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.sf-msg { padding: 12px 14px; border-radius: 12px; background: #f8fafc; font-size: 14px; line-height: 1.6; }
+.sf-msg.mine { background: var(--tint); }
+.sf-msg small { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.sf-dl { margin: 0; display: grid; grid-template-columns: 120px minmax(0, 1fr); row-gap: 6px; font-size: 13px; }
+.sf-dl dt { color: var(--muted); }
+.sf-dl dd { margin: 0; overflow-wrap: anywhere; }
+.sf-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+
+/* 강의실 코드 (프로젝터) 화면 */
+.sf-code-screen {
+  min-height: 100vh; background: var(--navy-dark); color: #fff; padding: 40px 56px;
+  display: flex; flex-direction: column; box-sizing: border-box;
+}
+@media (max-width: 800px) { .sf-code-screen { padding: 24px 20px; } }
+.sf-code-digits { display: flex; gap: 24px; }
+.sf-code-digit {
+  width: 170px; height: 210px; border-radius: 28px; background: #fff; color: var(--navy-dark);
+  font-size: 150px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+@media (max-width: 900px) {
+  .sf-code-digits { gap: 12px; }
+  .sf-code-digit { width: 20vw; height: 25vw; font-size: 17vw; border-radius: 18px; }
+}
+.sf-code-btn {
+  display: flex; align-items: center; min-height: 48px; padding: 0 20px; border: 1px solid rgba(199, 213, 245, 0.5);
+  border-radius: 12px; font-size: 16px; font-weight: 500; background: transparent; color: #fff; cursor: pointer;
+}
+.sf-code-btn:hover { background: rgba(255, 255, 255, 0.08); }

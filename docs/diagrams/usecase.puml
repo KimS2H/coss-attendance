@@ -1,0 +1,115 @@
+@startuml usecase
+' IoT 혁신융합대학 비교과 출석체크 — 유스케이스 다이어그램 (편집용 원본)
+' 보기용 그림: usecase.svg / 명세 요약: ../usecase.md
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName "Malgun Gothic"
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #1E3A8A
+  FontColor #0F1F4D
+}
+skinparam actorBorderColor #0F1F4D
+skinparam packageBorderColor #C9D6F2
+skinparam rectangleBorderColor #1E3A8A
+skinparam ArrowColor #0F1F4D
+
+actor "학생" as Student
+actor "인솔자" as Leader
+actor "운영자\n(공통 기능 묶음)" as Operator <<abstract>>
+actor "총관리자" as Admin
+actor "스케줄러" as Scheduler <<system>>
+
+Leader --|> Operator
+Admin --|> Operator
+
+rectangle "🎓 IoT 혁신융합대학 비교과 출석체크 (coss-attendance)" {
+
+  package "학생" {
+    usecase "로그인\n(공동 화면·학교·학번·이름)" as S01
+    usecase "개인정보·위치정보 동의\n(최초 1회)" as S02
+    usecase "기기 확인·등록\n(미등록 기기는 인솔자 승인)" as S03
+    usecase "오늘 수업 조회\n(0교시 | 과목명)" as S04
+    usecase "출석하기" as S05 #1E3A8A;text:white
+    usecase "GPS 위치 확인" as S06
+    usecase "강의실 코드 입력\n(4자리·30초 변경)" as S07
+    usecase "문의·오류 신고\n(출석·위치·코드 등)" as S08
+  }
+
+  package "인솔자 전용" {
+    usecase "인솔자 로그인\n(공동 로그인 → 학교 코드 인증)" as T01
+    usecase "강의실 코드 띄우기" as T02
+    usecase "문의 처리 · 문의하기\n(학생 문의 답변·이관 / 관리자 문의)" as T03
+  }
+
+  package "운영자 공통" {
+    usecase "출석 현황 조회\n(담당 학교 / 관리자: 전체)" as O01
+    usecase "출결 변경 신청\n(총관리자 승인 후 반영)" as O02
+    usecase "Excel·CSV 다운로드" as O03
+    usecase "학생·수강정보 일괄 등록\n(Excel)" as O04
+    usecase "수강 정보 추가·수정·삭제" as O05
+    usecase "기기 승인·초기화\n(미등록 기기 승인·폰 교체)" as O06
+  }
+
+  package "총관리자 전용" {
+    usecase "관리자 로그인\n(Tailscale + OTP)" as A01
+    usecase "학교·인솔자 계정 관리\n(학교 코드 발급·변경)" as A02
+    usecase "장애 현황 확인" as A03
+    usecase "장소·일정 관리\n(좌표·반경·교시)" as A05
+    usecase "출결 변경 승인\n(승인·미승인)" as A06
+    usecase "문의·오류 처리\n(이관 문의·인솔자 문의·전체 기록)" as A07
+    usecase "관리자 대시보드" as A08
+    usecase "대리 출석 불이익 처리\n(벌점·수료 불가)" as A09
+    usecase "첫 설정 · 이메일 설정\n(관리자 계정·OTP·발송 계정)" as A10
+  }
+
+  package "자동 처리" {
+    usecase "자동 결석 처리" as X01
+    usecase "로그인 세션 만료\n(3시간)" as X02
+    usecase "자동 백업" as X03
+    usecase "상태 점검·장애 알림\n(1분마다 → 이메일)" as X04
+    usecase "대리 출석 자동 취소\n(같은 기기 · 주인 아닌 계정)" as X06
+    usecase "출결 변경 시간 초과 처리\n(10분 → 우선 거절)" as X07
+  }
+}
+
+Student --> S01
+Student --> S04
+Student --> S05
+Student --> S08
+S01 ..> S03 : <<include>>
+S02 ..> S01 : <<extend>>
+S05 ..> S03 : <<include>>
+S05 ..> S06 : <<include>>
+S05 ..> S07 : <<include>>
+S08 ..> S05 : <<extend>>
+
+Leader --> T01
+Leader --> T02
+Leader --> T03
+
+Operator --> O01
+Operator --> O04
+Operator --> O05
+Operator --> O06
+O02 ..> O01 : <<extend>>
+O03 ..> O01 : <<extend>>
+
+Admin --> A01
+Admin --> A02
+Admin --> A03
+Admin --> A05
+Admin --> A06
+Admin --> A07
+Admin --> A08
+Admin --> A09
+Admin --> A10
+
+Scheduler --> X01
+Scheduler --> X02
+Scheduler --> X03
+Scheduler --> X07
+Scheduler --> X04
+X06 ..> S05 : <<extend>>
+
+@enduml

@@ -1,0 +1,270 @@
+%% IoT 혁신융합대학 비교과 출석체크 — ERD (편집용 원본, Mermaid)
+%% 보기용 그림: erd.svg / 테이블 명세: ../erd.md
+%% 관계 표기: ||--o{ 1:N · |o--o{ 0..1:N · ||--o| 1:0..1
+erDiagram
+  schools ||--o{ students : "소속"
+  schools ||--o{ staff : "소속"
+  schools |o--o{ import_jobs : "등록 대상"
+  students ||--o{ consents : "동의"
+  students ||--o{ devices : "기기"
+  students ||--o{ enrollments : "수강"
+  sessions ||--o{ enrollments : "수강생"
+  courses ||--o{ sessions : "회차"
+  locations ||--o{ sessions : "장소"
+  students ||--o{ attendance_attempts : "출석 시도"
+  sessions ||--o{ attendance_attempts : "출석 시도"
+  devices |o--o{ attendance_attempts : "사용 기기"
+  students ||--o{ attendances : "출석"
+  sessions ||--o{ attendances : "출석"
+  devices |o--o{ attendances : "사용 기기"
+  attendances ||--o{ attendance_changes : "수정 이력"
+  attendances ||--o| device_approvals : "기기 승인"
+  devices ||--o{ device_approvals : "승인 대상"
+  attendances ||--o{ attendance_change_requests : "변경 신청"
+  staff ||--o{ attendance_change_requests : "신청"
+  admins |o--o{ attendance_change_requests : "승인"
+  tickets |o--o{ attendance_change_requests : "연결 문의"
+  attendance_change_requests |o--o{ attendance_changes : "반영"
+  schools ||--o{ tickets : "소속"
+  sessions |o--o{ tickets : "관련 수업"
+  tickets ||--o{ ticket_messages : "답변"
+  students ||--o{ penalties : "불이익"
+  attendances |o--o{ penalties : "관련 출석"
+  admins |o--o{ app_settings : "변경"
+
+  schools {
+    int id PK
+    varchar name "학교명"
+    varchar code_hash "학교 코드 4자리 해시"
+    timestamptz code_changed_at "코드 변경 시각"
+    timestamptz created_at
+  }
+  staff {
+    int id PK
+    int school_id FK
+    varchar staff_no "직번"
+    varchar name "이름"
+    varchar email "알림 이메일"
+    varchar permission "view 또는 edit"
+    bool is_active
+    timestamptz created_at
+  }
+  admins {
+    int id PK
+    varchar username UK
+    varchar password_hash
+    varchar otp_secret_enc "OTP 비밀키 암호화"
+    bool otp_verified "첫 설정 OTP 확인"
+    bool is_active
+    timestamptz last_login_at
+  }
+  students {
+    int id PK
+    int school_id FK
+    varchar student_no "학번"
+    varchar name "이름"
+    varchar college "단과대"
+    varchar department "학과"
+    bool is_active
+    timestamptz created_at
+  }
+  consents {
+    int id PK
+    int student_id FK
+    varchar consent_type "privacy 또는 location"
+    varchar version "동의서 버전"
+    timestamptz agreed_at
+  }
+  devices {
+    int id PK
+    int student_id FK
+    varchar fingerprint_hash "기기 쿠키 did의 해시"
+    varchar user_agent
+    varchar status "active pending rejected retired"
+    timestamptz first_seen_at
+    timestamptz retired_at "초기화 시각"
+  }
+  courses {
+    int id PK
+    varchar name UK "과목명"
+  }
+  locations {
+    int id PK
+    varchar name "장소명"
+    numeric latitude "위도"
+    numeric longitude "경도"
+    int radius_m "허용 반경 기본 50"
+  }
+  sessions {
+    int id PK
+    int course_id FK
+    int location_id FK
+    date class_date "수업 날짜"
+    int period "교시"
+    varchar start_time
+    varchar end_time
+  }
+  enrollments {
+    int id PK
+    int student_id FK
+    int session_id FK
+    timestamptz created_at
+  }
+  attendance_attempts {
+    int id PK
+    int student_id FK
+    int session_id FK
+    int device_id FK
+    timestamptz attempted_at "서버 시각"
+    varchar result "성공 또는 실패 사유"
+    int distance_m "장소까지 거리"
+    int gps_accuracy_m "GPS 정확도"
+  }
+  attendances {
+    int id PK
+    int student_id FK
+    int session_id FK
+    int device_id FK
+    varchar status "present late absent excused pending_device canceled"
+    timestamptz checked_at "출석 요청 시각"
+    timestamptz decided_at "판정 기준 시각"
+    int distance_m
+    bool suspicious "동일기기 의심"
+    varchar suspicious_reason
+  }
+  attendance_changes {
+    int id PK
+    int attendance_id FK
+    int request_id FK "승인된 변경 신청"
+    varchar from_status
+    varchar to_status
+    text reason "수정 사유"
+    varchar changed_by_type "staff admin system"
+    int changed_by_id
+    timestamptz changed_at
+  }
+  device_approvals {
+    int id PK
+    int attendance_id FK
+    int device_id FK
+    varchar status "pending approved rejected"
+    timestamptz requested_at
+    varchar decided_by_type "staff 또는 admin"
+    int decided_by_id
+    timestamptz decided_at "출석 판정 기준"
+    text reject_reason
+  }
+  attendance_change_requests {
+    int id PK
+    int attendance_id FK
+    int ticket_id FK "연결된 문의"
+    int requested_by FK "staff.id"
+    varchar from_status
+    varchar to_status
+    text reason "신청 사유"
+    varchar status "pending approved rejected auto_rejected"
+    timestamptz auto_rejected_at "우선 거절 시각"
+    int decided_by FK "admins.id"
+    timestamptz decided_at
+    text reject_reason "미승인 사유"
+    timestamptz created_at
+  }
+  tickets {
+    int id PK
+    int school_id FK
+    int session_id FK "관련 수업"
+    varchar reporter_type "student 또는 staff"
+    int reporter_id
+    varchar category "분류"
+    text content
+    jsonb diagnostics "기기·마지막 시도·앱 버전"
+    varchar status "open in_progress escalated resolved"
+    varchar assignee "staff 또는 admin"
+    timestamptz escalated_at
+    timestamptz resolved_at
+    timestamptz created_at
+  }
+  ticket_messages {
+    int id PK
+    int ticket_id FK
+    varchar author_type "student staff admin"
+    int author_id
+    text body
+    timestamptz created_at
+  }
+  import_jobs {
+    int id PK
+    varchar kind "students staff locations sessions"
+    int school_id FK
+    varchar uploaded_by_type "staff 또는 admin"
+    int uploaded_by_id
+    varchar file_name
+    varchar status "preview confirmed failed"
+    int created_count
+    int updated_count
+    int skipped_count
+    jsonb errors "행별 오류"
+    jsonb payload "확정 전 읽은 행"
+    timestamptz created_at
+  }
+  audit_logs {
+    int id PK
+    varchar actor_type "student staff admin system"
+    int actor_id
+    varchar action "작업 종류"
+    varchar target_type
+    int target_id
+    jsonb detail
+    varchar ip
+    timestamptz created_at
+  }
+  notifications {
+    int id PK
+    varchar recipient_type "staff 또는 admin"
+    int recipient_id
+    varchar recipient_email
+    varchar channel "in_app 또는 email"
+    varchar kind "device_approval ticket change_request change_auto_rejected proxy_attendance incident"
+    varchar title
+    text body
+    varchar send_status "pending sent failed"
+    int send_attempts "최대 3회"
+    timestamptz read_at
+    timestamptz created_at
+  }
+  incidents {
+    int id PK
+    varchar component "api db redis funnel disk backup"
+    varchar severity "warning critical"
+    text message
+    timestamptz notified_at "이메일 보낸 시각"
+    timestamptz detected_at
+    timestamptz resolved_at
+  }
+  app_settings {
+    varchar key PK "smtp.host 등"
+    text value "비밀 값은 암호화"
+    bool is_secret
+    int updated_by FK "admins.id"
+    timestamptz updated_at
+  }
+  backups {
+    int id PK
+    varchar file_name
+    int size_bytes
+    varchar storage "local 또는 cloud"
+    varchar status "success failed"
+    timestamptz created_at
+  }
+  penalties {
+    int id PK
+    int student_id FK
+    int attendance_id FK
+    varchar kind "attendance_cancel points no_completion"
+    int points "벌점"
+    text reason "사유"
+    varchar decided_by_type "system 또는 admin"
+    int decided_by_id
+    timestamptz created_at
+    timestamptz revoked_at "해제 시각"
+  }

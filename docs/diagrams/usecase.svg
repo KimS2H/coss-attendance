@@ -1,0 +1,264 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1400" width="1500" height="1400" font-family="Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+  <defs>
+    <marker id="open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M1,1 L9,5 L1,9" fill="none" stroke="#2F5BD3" stroke-width="1.5"/>
+    </marker>
+    <style>
+      .uc { fill:#FFFFFF; stroke:#1E3A8A; stroke-width:1.6; }
+      .core { fill:#1E3A8A; stroke:#0F1F4D; stroke-width:1.6; }
+      .t { font-size:14px; font-weight:600; fill:#0F1F4D; text-anchor:middle; }
+      .s { font-size:11px; fill:#475569; text-anchor:middle; }
+      .ct { font-size:15px; font-weight:700; fill:#FFFFFF; text-anchor:middle; }
+      .cs { font-size:11px; fill:#C7D5F5; text-anchor:middle; }
+      .assoc { stroke:#0F1F4D; stroke-width:1.3; fill:none; }
+      .dep { stroke:#2F5BD3; stroke-width:1.3; stroke-dasharray:6 4; fill:none; marker-end:url(#open); }
+      .lbl { font-size:11px; fill:#2F5BD3; font-style:italic; paint-order:stroke; stroke:#EEF3FF; stroke-width:4px; stroke-linejoin:round; }
+      .lbl-sys { font-size:11px; fill:#2F5BD3; font-style:italic; paint-order:stroke; stroke:#F3F5F9; stroke-width:4px; stroke-linejoin:round; }
+      .panel { fill:#EEF3FF; stroke:#C9D6F2; stroke-width:1; }
+      .panel-sys { fill:#F3F5F9; stroke:#D5DBE5; stroke-width:1; }
+      .ph { font-size:13px; font-weight:700; fill:#1E3A8A; }
+      .actor { stroke:#0F1F4D; stroke-width:2; fill:none; }
+      .head { stroke:#0F1F4D; stroke-width:2; fill:#FFFFFF; }
+      .an { font-size:15px; font-weight:700; fill:#0F1F4D; text-anchor:middle; }
+      .an-abs { font-size:15px; font-weight:700; font-style:italic; fill:#1E3A8A; text-anchor:middle; }
+      .gen { stroke:#0F1F4D; stroke-width:1.4; fill:none; }
+      .legend { font-size:12px; fill:#334155; }
+    </style>
+  </defs>
+
+  <!-- 배경 -->
+  <rect x="0" y="0" width="1500" height="1400" fill="#FFFFFF"/>
+
+  <!-- 제목 -->
+  <text x="750" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#0F1F4D">IoT 혁신융합대학 비교과 출석체크 — 유스케이스 다이어그램</text>
+
+  <!-- 시스템 경계 -->
+  <rect x="190" y="60" width="1120" height="1270" rx="14" fill="#FFFFFF" stroke="#1E3A8A" stroke-width="2"/>
+  <text x="205" y="80" font-size="12" fill="#1E3A8A">«system» IoT 혁신융합대학 비교과 출석체크 (coss-attendance)</text>
+
+  <!-- 영역 패널 -->
+  <rect class="panel" x="210" y="90" width="550" height="520" rx="10"/>
+  <text class="ph" x="225" y="112">학생</text>
+  <rect class="panel-sys" x="210" y="630" width="550" height="680" rx="10"/>
+  <text class="ph" x="225" y="652">자동 처리 (시스템)</text>
+  <rect class="panel" x="790" y="90" width="500" height="250" rx="10"/>
+  <text class="ph" x="805" y="112">인솔자 전용</text>
+  <rect class="panel" x="790" y="350" width="500" height="380" rx="10"/>
+  <text class="ph" x="805" y="372">운영자 공통 (인솔자 · 총관리자)</text>
+  <rect class="panel" x="790" y="740" width="500" height="570" rx="10"/>
+  <text class="ph" x="805" y="762">총관리자 전용</text>
+
+  <!-- ========== 학생 유스케이스 ========== -->
+  <ellipse class="uc" cx="330" cy="160" rx="105" ry="28"/>
+  <text class="t" x="330" y="157">로그인</text><text class="s" x="330" y="174">공동 화면 · 학교 · 학번 · 이름</text>
+
+  <ellipse class="uc" cx="620" cy="130" rx="105" ry="28"/>
+  <text class="t" x="620" y="127">개인정보·위치정보 동의</text><text class="s" x="620" y="144">최초 로그인 시 1회</text>
+
+  <ellipse class="uc" cx="620" cy="220" rx="105" ry="28"/>
+  <text class="t" x="620" y="217">기기 확인 · 등록</text><text class="s" x="620" y="234">미등록 기기는 인솔자 승인 필요</text>
+
+  <ellipse class="uc" cx="330" cy="270" rx="105" ry="28"/>
+  <text class="t" x="330" y="267">오늘 수업 조회</text><text class="s" x="330" y="284">0교시 | 과목명</text>
+
+  <ellipse class="core" cx="330" cy="390" rx="105" ry="28"/>
+  <text class="ct" x="330" y="387">출석하기</text><text class="cs" x="330" y="404">버튼 1회 · 서버 시간 기준</text>
+
+  <ellipse class="uc" cx="620" cy="340" rx="105" ry="28"/>
+  <text class="t" x="620" y="337">GPS 위치 확인</text><text class="s" x="620" y="354">허용 반경 안인지 판정</text>
+
+  <ellipse class="uc" cx="620" cy="440" rx="105" ry="28"/>
+  <text class="t" x="620" y="437">강의실 코드 입력</text><text class="s" x="620" y="454">4자리 · 30초마다 변경</text>
+
+  <ellipse class="uc" cx="330" cy="520" rx="105" ry="28"/>
+  <text class="t" x="330" y="517">문의·오류 신고</text><text class="s" x="330" y="534">출석 · 위치 · 코드 등 문제</text>
+
+  <!-- 학생 영역 include / extend -->
+  <line class="dep" x1="432" y1="170" x2="519" y2="210"/>
+  <text class="lbl" x="482" y="183" text-anchor="middle">«include»</text>
+  <line class="dep" x1="517" y1="135" x2="434" y2="151"/>
+  <text class="lbl" x="476" y="130" text-anchor="middle">«extend»</text>
+  <line class="dep" x1="404" y1="366" x2="545" y2="242"/>
+  <text class="lbl" x="468" y="298" text-anchor="middle">«include»</text>
+  <line class="dep" x1="434" y1="383" x2="516" y2="350"/>
+  <text class="lbl" x="482" y="357" text-anchor="middle">«include»</text>
+  <line class="dep" x1="434" y1="398" x2="516" y2="430"/>
+  <text class="lbl" x="466" y="432" text-anchor="middle">«include»</text>
+  <line class="dep" x1="330" y1="492" x2="330" y2="420"/>
+  <text class="lbl" x="338" y="460">«extend»</text>
+
+  <!-- ========== 자동 처리 유스케이스 ========== -->
+  <ellipse class="uc" cx="330" cy="705" rx="105" ry="28"/>
+  <text class="t" x="330" y="702">자동 결석 처리</text><text class="s" x="330" y="719">출석 마감 시각 이후</text>
+
+  <ellipse class="uc" cx="330" cy="785" rx="105" ry="28"/>
+  <text class="t" x="330" y="782">로그인 세션 만료</text><text class="s" x="330" y="799">로그인 3시간 후</text>
+
+  <ellipse class="uc" cx="330" cy="865" rx="105" ry="28"/>
+  <text class="t" x="330" y="862">자동 백업</text><text class="s" x="330" y="879">매일 DB 백업</text>
+
+  <ellipse class="uc" cx="330" cy="975" rx="105" ry="28"/>
+  <text class="t" x="330" y="972">상태 점검 · 장애 알림</text><text class="s" x="330" y="989">1분마다 점검 → 이메일</text>
+
+  <ellipse class="uc" cx="620" cy="705" rx="105" ry="28"/>
+  <text class="t" x="620" y="702">대리 출석 자동 취소</text><text class="s" x="620" y="719">같은 기기 · 주인 아닌 계정</text>
+  <line class="dep" x1="585" y1="678" x2="402" y2="414"/>
+  <text class="lbl-sys" x="505" y="560" text-anchor="middle">«extend»</text>
+
+  <ellipse class="uc" cx="330" cy="1090" rx="105" ry="28"/>
+  <text class="t" x="330" y="1087">출결 변경 시간 초과</text><text class="s" x="330" y="1104">10분 → 우선 거절</text>
+
+
+  <!-- ========== 인솔자 전용 ========== -->
+  <ellipse class="uc" cx="1165" cy="150" rx="110" ry="28"/>
+  <text class="t" x="1165" y="147">인솔자 로그인</text><text class="s" x="1165" y="164">공동 로그인 → 학교 코드 인증</text>
+
+  <ellipse class="uc" cx="1165" cy="220" rx="110" ry="28"/>
+  <text class="t" x="1165" y="217">강의실 코드 띄우기</text><text class="s" x="1165" y="234">출석 시간 동안 화면에 표시</text>
+
+  <ellipse class="uc" cx="1165" cy="290" rx="110" ry="28"/>
+  <text class="t" x="1165" y="287">문의 처리 · 문의하기</text><text class="s" x="1165" y="304">학생 문의 답변·이관 / 관리자 문의</text>
+
+  <!-- ========== 운영자 공통 ========== -->
+  <ellipse class="uc" cx="1165" cy="420" rx="110" ry="28"/>
+  <text class="t" x="1165" y="417">출석 현황 조회</text><text class="s" x="1165" y="434">담당 학교 (관리자: 전체)</text>
+
+  <ellipse class="uc" cx="1165" cy="505" rx="110" ry="28"/>
+  <text class="t" x="1165" y="502">학생·수강정보 일괄 등록</text><text class="s" x="1165" y="519">Excel 업로드 → 검증 → 확정</text>
+
+  <ellipse class="uc" cx="1165" cy="590" rx="110" ry="28"/>
+  <text class="t" x="1165" y="587">수강 정보 추가·수정·삭제</text><text class="s" x="1165" y="604">수강 오류 바로잡기</text>
+
+  <ellipse class="uc" cx="1165" cy="675" rx="110" ry="28"/>
+  <text class="t" x="1165" y="672">기기 승인 · 초기화</text><text class="s" x="1165" y="689">미등록 기기 승인 · 폰 교체 시</text>
+
+  <ellipse class="uc" cx="900" cy="435" rx="100" ry="28"/>
+  <text class="t" x="900" y="432">출결 변경 신청</text><text class="s" x="900" y="449">총관리자 승인 후 반영</text>
+
+  <ellipse class="uc" cx="900" cy="515" rx="100" ry="28"/>
+  <text class="t" x="900" y="512">Excel · CSV 다운로드</text><text class="s" x="900" y="529">출석 로그 내보내기</text>
+
+  <line class="dep" x1="1000" y1="432" x2="1054" y2="424"/>
+  <text class="lbl" x="1027" y="418" text-anchor="middle">«extend»</text>
+  <line class="dep" x1="988" y1="500" x2="1076" y2="444"/>
+  <text class="lbl" x="1046" y="484" text-anchor="middle">«extend»</text>
+
+  <!-- ========== 총관리자 전용 ========== -->
+  <ellipse class="uc" cx="1165" cy="800" rx="110" ry="28"/>
+  <text class="t" x="1165" y="797">관리자 로그인</text><text class="s" x="1165" y="814">인증 PC(Tailscale) + OTP</text>
+
+  <ellipse class="uc" cx="1165" cy="866" rx="110" ry="28"/>
+  <text class="t" x="1165" y="863">학교 · 인솔자 계정 관리</text><text class="s" x="1165" y="880">학교 코드(4자리) 발급 · 변경</text>
+
+  <ellipse class="uc" cx="1165" cy="932" rx="110" ry="28"/>
+  <text class="t" x="1165" y="929">장애 현황 확인</text><text class="s" x="1165" y="946">상태 카드 · 최근 오류 · 알림 이력</text>
+
+  <ellipse class="uc" cx="1165" cy="998" rx="110" ry="28"/>
+  <text class="t" x="1165" y="995">장소 · 일정 관리</text><text class="s" x="1165" y="1012">좌표 · 허용 반경 · 교시</text>
+
+  <ellipse class="uc" cx="1165" cy="1064" rx="110" ry="28"/>
+  <text class="t" x="1165" y="1061">출결 변경 승인</text><text class="s" x="1165" y="1078">10분 넘으면 우선 거절 → 재검토</text>
+
+  <ellipse class="uc" cx="1165" cy="1130" rx="110" ry="28"/>
+  <text class="t" x="1165" y="1127">문의·오류 처리</text><text class="s" x="1165" y="1144">이관 문의 · 인솔자 문의 · 전체 기록</text>
+
+  <ellipse class="uc" cx="1165" cy="1196" rx="110" ry="28"/>
+  <text class="t" x="1165" y="1193">관리자 대시보드</text><text class="s" x="1165" y="1210">오늘 현황 · 처리할 일 한눈에</text>
+
+  <ellipse class="uc" cx="1165" cy="1262" rx="110" ry="28"/>
+  <text class="t" x="1165" y="1259">대리 출석 불이익 처리</text><text class="s" x="1165" y="1276">출석 취소 · 벌점 · 수료 불가</text>
+
+  <ellipse class="uc" cx="900" cy="880" rx="100" ry="28"/>
+  <text class="t" x="900" y="877">첫 설정 · 이메일 설정</text><text class="s" x="900" y="894">관리자 계정 · OTP · 발송 계정</text>
+
+  <!-- ========== 액터: 학생 ========== -->
+  <g>
+    <circle class="head" cx="95" cy="305" r="11"/>
+    <line class="actor" x1="95" y1="316" x2="95" y2="344"/>
+    <line class="actor" x1="77" y1="328" x2="113" y2="328"/>
+    <line class="actor" x1="95" y1="344" x2="81" y2="368"/>
+    <line class="actor" x1="95" y1="344" x2="109" y2="368"/>
+    <text class="an" x="95" y="390">학생</text>
+  </g>
+  <line class="assoc" x1="115" y1="328" x2="226" y2="166"/>
+  <line class="assoc" x1="115" y1="328" x2="226" y2="273"/>
+  <line class="assoc" x1="115" y1="328" x2="226" y2="389"/>
+  <line class="assoc" x1="115" y1="328" x2="228" y2="512"/>
+
+  <!-- ========== 시스템 액터 ========== -->
+  <rect x="35" y="760" width="120" height="50" rx="8" fill="#FFFFFF" stroke="#0F1F4D" stroke-width="2"/>
+  <text x="95" y="780" text-anchor="middle" font-size="10" fill="#475569">«system»</text>
+  <text x="95" y="799" text-anchor="middle" font-size="14" font-weight="700" fill="#0F1F4D">스케줄러</text>
+  <line class="assoc" x1="155" y1="785" x2="228" y2="712"/>
+  <line class="assoc" x1="155" y1="785" x2="225" y2="785"/>
+  <line class="assoc" x1="155" y1="785" x2="228" y2="858"/>
+  <line class="assoc" x1="145" y1="810" x2="236" y2="962"/>
+  <line class="assoc" x1="150" y1="810" x2="228" y2="1080"/>
+
+
+  <!-- ========== 액터: 인솔자 ========== -->
+  <g>
+    <circle class="head" cx="1400" cy="185" r="11"/>
+    <line class="actor" x1="1400" y1="196" x2="1400" y2="224"/>
+    <line class="actor" x1="1382" y1="208" x2="1418" y2="208"/>
+    <line class="actor" x1="1400" y1="224" x2="1386" y2="248"/>
+    <line class="actor" x1="1400" y1="224" x2="1414" y2="248"/>
+    <text class="an" x="1400" y="270">인솔자</text>
+  </g>
+  <line class="assoc" x1="1382" y1="208" x2="1275" y2="153"/>
+  <line class="assoc" x1="1382" y1="208" x2="1275" y2="220"/>
+  <line class="assoc" x1="1382" y1="208" x2="1275" y2="287"/>
+
+  <!-- ========== 액터: 운영자(추상) ========== -->
+  <g>
+    <circle class="head" cx="1400" cy="510" r="11"/>
+    <line class="actor" x1="1400" y1="521" x2="1400" y2="549"/>
+    <line class="actor" x1="1382" y1="533" x2="1418" y2="533"/>
+    <line class="actor" x1="1400" y1="549" x2="1386" y2="573"/>
+    <line class="actor" x1="1400" y1="549" x2="1414" y2="573"/>
+    <text class="an-abs" x="1400" y="595">운영자</text>
+    <text x="1400" y="611" text-anchor="middle" font-size="10.5" fill="#475569">(공통 기능 묶음)</text>
+  </g>
+  <line class="assoc" x1="1382" y1="533" x2="1275" y2="423"/>
+  <line class="assoc" x1="1382" y1="533" x2="1275" y2="505"/>
+  <line class="assoc" x1="1382" y1="533" x2="1275" y2="588"/>
+  <line class="assoc" x1="1382" y1="533" x2="1275" y2="671"/>
+
+  <!-- ========== 액터: 총관리자 ========== -->
+  <g>
+    <circle class="head" cx="1400" cy="890" r="11"/>
+    <line class="actor" x1="1400" y1="901" x2="1400" y2="929"/>
+    <line class="actor" x1="1382" y1="913" x2="1418" y2="913"/>
+    <line class="actor" x1="1400" y1="929" x2="1386" y2="953"/>
+    <line class="actor" x1="1400" y1="929" x2="1414" y2="953"/>
+    <text class="an" x="1400" y="975">총관리자</text>
+  </g>
+  <line class="assoc" x1="1382" y1="913" x2="1275" y2="800"/>
+  <line class="assoc" x1="1382" y1="913" x2="1275" y2="866"/>
+  <line class="assoc" x1="1382" y1="913" x2="1275" y2="932"/>
+  <line class="assoc" x1="1382" y1="913" x2="1275" y2="996"/>
+  <line class="assoc" x1="1382" y1="913" x2="1272" y2="1057"/>
+  <line class="assoc" x1="1382" y1="913" x2="1268" y2="1120"/>
+  <line class="assoc" x1="1382" y1="913" x2="1262" y2="1183"/>
+  <line class="assoc" x1="1382" y1="913" x2="1255" y2="1246"/>
+  <line class="assoc" x1="1382" y1="913" x2="1000" y2="890"/>
+
+  <!-- 일반화: 인솔자 → 운영자, 총관리자 → 운영자 -->
+  <line class="gen" x1="1400" y1="280" x2="1400" y2="483"/>
+  <polygon points="1400,497 1391,482 1409,482" fill="#FFFFFF" stroke="#0F1F4D" stroke-width="1.4"/>
+  <line class="gen" x1="1400" y1="874" x2="1400" y2="635"/>
+  <polygon points="1400,620 1391,635 1409,635" fill="#FFFFFF" stroke="#0F1F4D" stroke-width="1.4"/>
+
+  <!-- ========== 범례 ========== -->
+  <line class="assoc" x1="200" y1="1368" x2="240" y2="1368"/>
+  <text class="legend" x="248" y="1372">연결 (액터가 사용)</text>
+  <line class="dep" x1="390" y1="1368" x2="430" y2="1368"/>
+  <text class="legend" x="438" y="1372">«include» 항상 함께 실행</text>
+  <line class="dep" x1="620" y1="1368" x2="660" y2="1368"/>
+  <text class="legend" x="668" y="1372">«extend» 조건이 맞을 때만 실행</text>
+  <line class="gen" x1="890" y1="1368" x2="918" y2="1368"/>
+  <polygon points="932,1368 917,1360 917,1376" fill="#FFFFFF" stroke="#0F1F4D" stroke-width="1.4"/>
+  <text class="legend" x="940" y="1372">일반화 (공통 기능 상속)</text>
+  <ellipse class="core" cx="1130" cy="1368" rx="22" ry="9"/>
+  <text class="legend" x="1160" y="1372">핵심 유스케이스</text>
+</svg>

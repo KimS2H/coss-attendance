@@ -1,0 +1,28 @@
+{
+  "name": "coss-attendance",
+  "private": true,
+  "description": "🎓 IoT 혁신융합대학 비교과 출석체크",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "db:dev": "npm run db:dev -w apps/api",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:worker": "npm run dev:worker -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/api && npm run build -w apps/web",
+    "test": "npm test -w apps/api",
+    "hooks:install": "git config core.hooksPath .githooks"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.25.12": true,
+    "@embedded-postgres/windows-x64@16.14.0-beta.17": true
+  }
+}

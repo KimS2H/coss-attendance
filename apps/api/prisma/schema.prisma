@@ -1,0 +1,436 @@
+// ─────────────────────────────────────────────
+// DB 구조 (docs/erd.md와 같은 내용). 24개 테이블.
+// 바꾼 뒤에는 개발 PC에서: npm run db:migrate:dev -w apps/api -- --name 바꾼내용
+// ID는 int를 쓴다 (학생 50명 규모라 bigint가 필요 없음).
+// 누가 했는지(*_type + *_id)는 인솔자·총관리자·시스템이 섞이므로 외래키를 걸지 않는다.
+// ─────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========== 조직·계정 ==========
+
+model School {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
+  codeHash      String?   @map("code_hash") // 학교 코드 4자리의 HMAC. 원문은 저장하지 않음
+  codeChangedAt DateTime? @map("code_changed_at") @db.Timestamptz(3)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  staff      Staff[]
+  students   Student[]
+  tickets    Ticket[]
+  importJobs ImportJob[]
+
+  @@map("schools")
+}
+
+model Staff {
+  id         Int      @id @default(autoincrement())
+  schoolId   Int      @map("school_id")
+  staffNo    String   @map("staff_no") // 직번
+  name       String
+  email      String // 기기 승인 요청·문의 알림을 받는 주소
+  permission String   @default("edit") // view(보기) / edit(수정)
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  school         School                    @relation(fields: [schoolId], references: [id])
+  changeRequests AttendanceChangeRequest[]
+
+  @@unique([schoolId, staffNo])
+  @@map("staff")
+}
+
+model Admin {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  passwordHash String    @map("password_hash")
+  otpSecretEnc String    @map("otp_secret_enc") // OTP 비밀키 (APP_SECRET으로 암호화)
+  otpVerified  Boolean   @default(false) @map("otp_verified") // 첫 설정에서 OTP 확인을 마쳤는지
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(3)
+
+  decidedRequests AttendanceChangeRequest[]
+  settings        AppSetting[]
+
+  @@map("admins")
+}
+
+// ========== 학생 ==========
+
+model Student {
+  id         Int      @id @default(autoincrement())
+  schoolId   Int      @map("school_id")
+  studentNo  String   @map("student_no") // 학번 (앞자리 0 유지를 위해 문자)
+  name       String
+  college    String // 단과대
+  department String // 학과
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  school      School              @relation(fields: [schoolId], references: [id])
+  consents    Consent[]
+  devices     Device[]
+  enrollments Enrollment[]
+  attempts    AttendanceAttempt[]
+  attendances Attendance[]
+  penalties   Penalty[]
+
+  @@unique([schoolId, studentNo])
+  @@map("students")
+}
+
+model Consent {
+  id          Int      @id @default(autoincrement())
+  studentId   Int      @map("student_id")
+  consentType String   @map("consent_type") // privacy(개인정보) / location(위치정보)
+  version     String // 동의서 버전. 바뀌면 다시 동의받음
+  agreedAt    DateTime @default(now()) @map("agreed_at") @db.Timestamptz(3)
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+  @@map("consents")
+}
+
+model Device {
+  id              Int       @id @default(autoincrement())
+  studentId       Int       @map("student_id")
+  fingerprintHash String    @map("fingerprint_hash") // 브라우저 did 쿠키의 HMAC
+  userAgent       String?   @map("user_agent")
+  status          String // active(등록 기기) / pending(승인 대기) / rejected(거절) / retired(해제·교체)
+  firstSeenAt     DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(3)
+  retiredAt       DateTime? @map("retired_at") @db.Timestamptz(3)
+
+  student     Student             @relation(fields: [studentId], references: [id])
+  attempts    AttendanceAttempt[]
+  attendances Attendance[]
+  approvals   DeviceApproval[]
+
+  // 학생당 active 기기는 1개만: 마이그레이션 SQL의 부분 고유 인덱스(devices_one_active_per_student)
+  @@unique([studentId, fingerprintHash])
+  @@index([fingerprintHash])
+  @@map("devices")
+}
+
+// ========== 수업 ==========
+
+model Course {
+  id   Int    @id @default(autoincrement())
+  name String @unique // 과목명 (엑셀에서 이름으로 찾음)
+
+  sessions Session[]
+
+  @@map("courses")
+}
+
+model Location {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique // 장소명 (예: 공학관 301)
+  latitude  Decimal @db.Decimal(9, 6)
+  longitude Decimal @db.Decimal(9, 6)
+  radiusM   Int     @default(50) @map("radius_m") // 허용 반경 (m)
+
+  sessions Session[]
+
+  @@map("locations")
+}
+
+model Session {
+  id         Int      @id @default(autoincrement())
+  courseId   Int      @map("course_id")
+  locationId Int      @map("location_id")
+  classDate  DateTime @map("class_date") @db.Date // 수업 날짜 (한국 날짜)
+  period     Int // 교시
+  startTime  String   @map("start_time") @db.VarChar(5) // "10:00" (한국 시각)
+  endTime    String   @map("end_time") @db.VarChar(5) // "11:50"
+
+  course      Course              @relation(fields: [courseId], references: [id])
+  location    Location            @relation(fields: [locationId], references: [id])
+  enrollments Enrollment[]
+  attempts    AttendanceAttempt[]
+  attendances Attendance[]
+  tickets     Ticket[]
+
+  @@unique([courseId, classDate, period])
+  @@index([classDate])
+  @@map("sessions")
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  studentId Int      @map("student_id")
+  sessionId Int      @map("session_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, sessionId])
+  @@index([sessionId])
+  @@map("enrollments")
+}
+
+// ========== 출석 ==========
+
+model AttendanceAttempt {
+  id           Int      @id @default(autoincrement())
+  studentId    Int      @map("student_id")
+  sessionId    Int      @map("session_id")
+  deviceId     Int?     @map("device_id")
+  attemptedAt  DateTime @default(now()) @map("attempted_at") @db.Timestamptz(3)
+  result       String // present / late / pending_device / proxy_canceled / too_early / closed / out_of_range / gps_denied / code_wrong
+  distanceM    Int?     @map("distance_m")
+  gpsAccuracyM Int?     @map("gps_accuracy_m")
+
+  student Student @relation(fields: [studentId], references: [id])
+  session Session @relation(fields: [sessionId], references: [id])
+  device  Device? @relation(fields: [deviceId], references: [id])
+
+  @@index([studentId, sessionId])
+  @@map("attendance_attempts")
+}
+
+model Attendance {
+  id               Int       @id @default(autoincrement())
+  studentId        Int       @map("student_id")
+  sessionId        Int       @map("session_id")
+  deviceId         Int?      @map("device_id")
+  status           String // present / late / absent / excused / pending_device / canceled
+  checkedAt        DateTime? @map("checked_at") @db.Timestamptz(3) // 학생이 출석을 요청한 시각
+  decidedAt        DateTime? @map("decided_at") @db.Timestamptz(3) // 판정 기준 시각 (기기 승인 건은 승인 시각)
+  distanceM        Int?      @map("distance_m")
+  suspicious       Boolean   @default(false)
+  suspiciousReason String?   @map("suspicious_reason")
+
+  student         Student                   @relation(fields: [studentId], references: [id])
+  session         Session                   @relation(fields: [sessionId], references: [id])
+  device          Device?                   @relation(fields: [deviceId], references: [id])
+  changes         AttendanceChange[]
+  deviceApprovals DeviceApproval[]
+  changeRequests  AttendanceChangeRequest[]
+  penalties       Penalty[]
+
+  @@unique([studentId, sessionId])
+  @@index([sessionId])
+  @@map("attendances")
+}
+
+model AttendanceChange {
+  id            Int      @id @default(autoincrement())
+  attendanceId  Int      @map("attendance_id")
+  requestId     Int?     @map("request_id")
+  fromStatus    String   @map("from_status")
+  toStatus      String   @map("to_status")
+  reason        String
+  changedByType String   @map("changed_by_type") // staff / admin / system
+  changedById   Int?     @map("changed_by_id")
+  changedAt     DateTime @default(now()) @map("changed_at") @db.Timestamptz(3)
+
+  attendance Attendance               @relation(fields: [attendanceId], references: [id])
+  request    AttendanceChangeRequest? @relation(fields: [requestId], references: [id])
+
+  @@index([attendanceId])
+  @@map("attendance_changes")
+}
+
+model DeviceApproval {
+  id            Int       @id @default(autoincrement())
+  attendanceId  Int       @map("attendance_id")
+  deviceId      Int       @map("device_id")
+  status        String    @default("pending") // pending / approved / rejected
+  requestedAt   DateTime  @default(now()) @map("requested_at") @db.Timestamptz(3)
+  decidedByType String?   @map("decided_by_type")
+  decidedById   Int?      @map("decided_by_id")
+  decidedAt     DateTime? @map("decided_at") @db.Timestamptz(3) // 승인이면 이 시각으로 출석·지각 판정
+  rejectReason  String?   @map("reject_reason")
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id])
+  device     Device     @relation(fields: [deviceId], references: [id])
+
+  @@index([status])
+  @@map("device_approvals")
+}
+
+model AttendanceChangeRequest {
+  id             Int       @id @default(autoincrement())
+  attendanceId   Int       @map("attendance_id")
+  ticketId       Int?      @map("ticket_id")
+  requestedBy    Int       @map("requested_by")
+  fromStatus     String    @map("from_status")
+  toStatus       String    @map("to_status") // present / late / absent / excused
+  reason         String
+  status         String    @default("pending") // pending / approved / rejected / auto_rejected
+  autoRejectedAt DateTime? @map("auto_rejected_at") @db.Timestamptz(3)
+  decidedBy      Int?      @map("decided_by")
+  decidedAt      DateTime? @map("decided_at") @db.Timestamptz(3)
+  rejectReason   String?   @map("reject_reason")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  attendance Attendance         @relation(fields: [attendanceId], references: [id])
+  ticket     Ticket?            @relation(fields: [ticketId], references: [id])
+  requester  Staff              @relation(fields: [requestedBy], references: [id])
+  decider    Admin?             @relation(fields: [decidedBy], references: [id])
+  changes    AttendanceChange[]
+
+  @@index([status])
+  @@map("attendance_change_requests")
+}
+
+model Penalty {
+  id            Int       @id @default(autoincrement())
+  studentId     Int       @map("student_id")
+  attendanceId  Int?      @map("attendance_id")
+  kind          String // attendance_cancel(출석 취소) / points(벌점) / no_completion(수료 불가)
+  points        Int?
+  reason        String
+  decidedByType String    @map("decided_by_type") // system / admin
+  decidedById   Int?      @map("decided_by_id")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(3)
+  revokeReason  String?   @map("revoke_reason")
+
+  student    Student     @relation(fields: [studentId], references: [id])
+  attendance Attendance? @relation(fields: [attendanceId], references: [id])
+
+  @@index([studentId])
+  @@map("penalties")
+}
+
+// ========== 문의 ==========
+
+model Ticket {
+  id           Int       @id @default(autoincrement())
+  schoolId     Int       @map("school_id")
+  sessionId    Int?      @map("session_id")
+  reporterType String    @map("reporter_type") // student / staff
+  reporterId   Int       @map("reporter_id")
+  category     String
+  content      String
+  diagnostics  Json? // 기기 정보, 마지막 출석 시도 결과, 앱 버전 (좌표 제외)
+  status       String    @default("open") // open / in_progress / escalated / resolved
+  assignee     String    @default("staff") // staff / admin
+  escalatedAt  DateTime? @map("escalated_at") @db.Timestamptz(3)
+  resolvedAt   DateTime? @map("resolved_at") @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  school         School                    @relation(fields: [schoolId], references: [id])
+  session        Session?                  @relation(fields: [sessionId], references: [id])
+  messages       TicketMessage[]
+  changeRequests AttendanceChangeRequest[]
+
+  @@index([schoolId, status])
+  @@map("tickets")
+}
+
+model TicketMessage {
+  id         Int      @id @default(autoincrement())
+  ticketId   Int      @map("ticket_id")
+  authorType String   @map("author_type") // student / staff / admin
+  authorId   Int?     @map("author_id")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("ticket_messages")
+}
+
+// ========== 운영 ==========
+
+model ImportJob {
+  id             Int      @id @default(autoincrement())
+  schoolId       Int?     @map("school_id")
+  kind           String   @default("students") // students(학생·수강) / staff / locations / sessions
+  uploadedByType String   @map("uploaded_by_type") // staff / admin
+  uploadedById   Int      @map("uploaded_by_id")
+  fileName       String   @map("file_name")
+  status         String // preview / confirmed / failed
+  createdCount   Int      @default(0) @map("created_count")
+  updatedCount   Int      @default(0) @map("updated_count")
+  skippedCount   Int      @default(0) @map("skipped_count")
+  errors         Json? // 행별 오류
+  payload        Json? // 확정 전까지 보관하는 읽은 행 (확정하면 비움)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  school School? @relation(fields: [schoolId], references: [id])
+
+  @@map("import_jobs")
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  actorType  String   @map("actor_type") // student / staff / admin / system
+  actorId    Int?     @map("actor_id")
+  action     String // 예: login_failed, school_code_failed, school_code_changed, device_reset
+  targetType String?  @map("target_type")
+  targetId   Int?     @map("target_id")
+  detail     Json?
+  ip         String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id             Int       @id @default(autoincrement())
+  recipientType  String    @map("recipient_type") // staff / admin / student
+  recipientId    Int?      @map("recipient_id")
+  recipientEmail String?   @map("recipient_email") // 이메일일 때 받는 주소
+  channel        String // in_app(화면 알림) / email
+  kind           String // device_approval / ticket / change_request / change_auto_rejected / proxy_attendance / incident
+  title          String
+  body           String
+  sendStatus     String?   @map("send_status") // pending / sent / failed (이메일)
+  sendAttempts   Int       @default(0) @map("send_attempts")
+  readAt         DateTime? @map("read_at") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([recipientType, recipientId, readAt])
+  @@index([sendStatus])
+  @@map("notifications")
+}
+
+model Incident {
+  id         Int       @id @default(autoincrement())
+  component  String // api / db / redis / funnel / disk / backup
+  severity   String // warning / critical
+  message    String
+  notifiedAt DateTime? @map("notified_at") @db.Timestamptz(3)
+  detectedAt DateTime  @default(now()) @map("detected_at") @db.Timestamptz(3)
+  resolvedAt DateTime? @map("resolved_at") @db.Timestamptz(3)
+
+  @@map("incidents")
+}
+
+model Backup {
+  id        Int      @id @default(autoincrement())
+  fileName  String   @map("file_name")
+  sizeBytes Int?     @map("size_bytes")
+  storage   String // local / cloud
+  status    String // success / failed
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@map("backups")
+}
+
+model AppSetting {
+  key       String   @id // 예: smtp.host, smtp.password, setup.completed_at
+  value     String // 비밀 값은 암호화해서 저장
+  isSecret  Boolean  @default(false) @map("is_secret")
+  updatedBy Int?     @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  admin Admin? @relation(fields: [updatedBy], references: [id])
+
+  @@map("app_settings")
+}

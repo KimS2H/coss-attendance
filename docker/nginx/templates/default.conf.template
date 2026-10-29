@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────
+# Nginx: 입구 두 개
+#  - 8080 공개 입구: Tailscale Funnel(인터넷)이 여기로 보낸다. 학생·인솔자 화면만. /admin은 막는다.
+#  - 8081 관리자 입구: Tailscale Serve(등록된 PC만)가 여기로 보낸다. 총관리자 화면.
+# 두 포트 모두 서버 PC 안(127.0.0.1)에서만 열린다 (docker-compose.yml).
+# ─────────────────────────────────────────────
+
+# 요청 횟수 제한. Funnel을 거치면 접속 IP가 X-Forwarded-For에 담겨 온다.
+map $http_x_forwarded_for $client_key {
+  ""      $binary_remote_addr;
+  default $http_x_forwarded_for;
+}
+limit_req_zone $client_key zone=api_per_client:10m rate=10r/s;
+limit_req_status 429;
+
+upstream api_server {
+  server api:3000;
+}
+
+# ---------- 8080: 공개 입구 ----------
+server {
+  listen 8080;
+  server_name _;
+  client_max_body_size 6m;
+  server_tokens off;
+
+  # 총관리자 화면·API는 공개 입구에서 아예 없는 것처럼
+  location ^~ /api/admin { return 404; }
+  location ^~ /admin { return 404; }
+
+  location /api/ {
+    limit_req zone=api_per_client burst=60 nodelay;
+    proxy_pass http://api_server;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $client_key;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Admin-Gate "";
+    proxy_read_timeout 60s;
+  }
+
+  include /etc/nginx/conf.d/spa.inc;
+}
+
+# ---------- 8081: 관리자 입구 (Tailscale 등록 PC만) ----------
+server {
+  listen 8081;
+  server_name _;
+  client_max_body_size 6m;
+  server_tokens off;
+
+  location /api/ {
+    proxy_pass http://api_server;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    # API는 이 비밀 값이 있어야 /api/admin을 받아 준다
+    proxy_set_header X-Admin-Gate "${ADMIN_GATE_SECRET}";
+    proxy_read_timeout 120s;
+  }
+
+  include /etc/nginx/conf.d/spa.inc;
+}

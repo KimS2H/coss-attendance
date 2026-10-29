@@ -1,0 +1,18 @@
+# gitleaks 설정: 기본 규칙 + 이 프로젝트용 규칙
+[extend]
+useDefault = true
+
+[[rules]]
+id = "coss-env-secret"
+description = "APP_SECRET / ADMIN_GATE_SECRET / POSTGRES_PASSWORD에 실제 값이 들어감"
+regex = '''(?i)(APP_SECRET|ADMIN_GATE_SECRET|POSTGRES_PASSWORD)\s*=\s*['"]?[A-Za-z0-9_\-+/=]{12,}'''
+
+[[rules]]
+id = "coss-tailnet-address"
+description = "실제 Tailscale 주소 (예시 주소 ○○.ts.net은 허용)"
+regex = '''[a-z0-9-]+\.[a-z0-9-]+\.ts\.net'''
+
+[allowlist]
+description = "예시 값"
+regexes = ['''office-pc\.tail1234\.ts\.net''', '''example\.ts\.net''', '''test-secret-test-secret''']
+paths = ['''package-lock\.json''']

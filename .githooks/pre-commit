@@ -1,0 +1,23 @@
+#!/bin/sh
+# 커밋 전에 비밀 정보(비밀번호·키·토큰)가 섞였는지 검사한다.
+# 설치: npm run hooks:install   (한 번만)
+# gitleaks 설치: winget install gitleaks.gitleaks
+
+# 1) .env 파일이나 실제 명단 엑셀이 커밋에 들어갔는지 확인
+blocked=$(git diff --cached --name-only | grep -E '(^|/)\.env($|\.)|\.(dump|backup)$' | grep -v '\.env\.example$')
+if [ -n "$blocked" ]; then
+  echo "❌ 올리면 안 되는 파일이 있어요:"
+  echo "$blocked"
+  echo "   git restore --staged <파일> 로 빼 주세요."
+  exit 1
+fi
+
+# 2) gitleaks로 비밀 정보 검사
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --config .gitleaks.toml || {
+    echo "❌ 비밀 정보로 보이는 내용이 있어 커밋을 막았어요. 위 내용을 확인해 주세요."
+    exit 1
+  }
+else
+  echo "⚠️  gitleaks가 없어 비밀 정보 검사를 건너뜁니다. 설치: winget install gitleaks.gitleaks"
+fi

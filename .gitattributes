@@ -1,0 +1,5 @@
+# 줄바꿈을 LF로 통일 (Windows에서 고쳐도 서버(리눅스)·Docker에서 문제없게)
+* text=auto eol=lf
+*.png binary
+*.xlsx binary
+*.svg text eol=lf

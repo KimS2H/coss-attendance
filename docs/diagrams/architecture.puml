@@ -1,0 +1,73 @@
+@startuml architecture
+' IoT 혁신융합대학 비교과 출석체크 — 시스템 구성도 (편집용 원본)
+' 보기용 그림: architecture.svg / 설명: ../architecture.md
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName "Malgun Gothic"
+skinparam ArrowColor #0F1F4D
+skinparam nodeBorderColor #1E3A8A
+skinparam rectangleBorderColor #1E3A8A
+skinparam databaseBorderColor #1E3A8A
+skinparam cloudBorderColor #94A3B8
+
+package "사용자 · 인터넷" {
+  node "학생 스마트폰\n(PWA · GPS · 기기 쿠키)" as Phone
+  node "인솔자 노트북\n(현황 · 엑셀 · 코드 표시)" as Leader
+}
+package "인증된 PC (Tailscale)" {
+  node "총관리자 PC" as AdminPC
+}
+package "개발 환경" {
+  node "개발 PC" as DevPC
+}
+
+cloud "Tailscale Funnel (무료)\n고정 주소 ○○.ts.net · HTTPS 자동\n학생·인솔자 화면만 공개" as CF
+cloud "Tailscale 사설망 (무료)\n관리자 전용 통로" as TS
+cloud "GitHub\n(공개 저장소 · 비밀 정보 제외)" as GH
+
+node "사무실 서버 PC · Windows 11\n(외부 인바운드 포트 없음)" as Server {
+  rectangle "Tailscale 클라이언트" {
+    rectangle "Funnel :443\n(인터넷 공개)" as CFD
+    rectangle "Serve :8443\n(Tailscale 기기만)" as TSC
+  }
+  rectangle "Docker Compose" {
+    rectangle "Nginx\n리버스 프록시 · 화면 파일 · 요청 횟수 제한\n공개 포트: /admin 차단 · 관리자 포트: /admin" as Nginx
+    rectangle "API 서버 (NestJS)\n로그인 · 출석 판정 · 엑셀 · 코드 계산" as API
+    rectangle "Worker · 스케줄러\n자동 결석 · 10분 우선 거절 · 백업 · 엑셀" as Worker
+    rectangle "상태 점검 (1분마다)\nAPI · DB · Redis · 디스크 · 백업" as Mon
+    database "Redis\n세션 3h · 요청 횟수" as Redis
+    database "PostgreSQL\n학생 · 수업 · 출석" as PG
+  }
+  rectangle "로컬 디스크\nDB 볼륨 · 일일 백업 · 로그" as Disk
+}
+
+package "외부 서비스" {
+  rectangle "UptimeRobot\n외부 감시" as Uptime
+  rectangle "이메일 알림 (SMTP)\n장애 → 총관리자 · 기기 승인 → 인솔자\n발송 계정은 첫 설정 화면에서 입력" as Notify
+  rectangle "클라우드 백업\n(추가 예정, 지금은 직접 복사)" as Cloud
+}
+
+Phone --> CF : HTTPS
+Leader --> CF : HTTPS
+CF <--> CFD : Funnel
+CFD --> Nginx : 공개 포트
+AdminPC --> TS
+TS --> TSC
+TSC --> Nginx : 관리자 포트 /admin
+Nginx --> API
+API --> Redis
+API --> PG
+API ..> Notify : 기기 승인 요청
+Worker --> PG
+Worker --> Disk
+PG --> Disk
+Disk --> Cloud : 복사본 업로드
+
+DevPC --> GH : push
+GH --> Server : pull 배포
+DevPC ..> TS : 원격 점검
+
+Mon ..> Notify : 장애 알림
+Uptime ..> Notify
+
+@enduml

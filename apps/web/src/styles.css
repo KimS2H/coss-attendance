@@ -1,0 +1,95 @@
+/* ─────────────────────────────────────────────
+   공통 스타일. 색은 아래 변수만 쓴다 (키 컬러 #1E3A8A).
+   ───────────────────────────────────────────── */
+:root {
+  --navy: #1e3a8a; /* 키 컬러: 버튼, 강조 */
+  --navy-dark: #0f1f4d; /* 상단 막대 */
+  --navy-hover: #2f5bd3;
+  --tint: #eef3ff; /* 연한 강조 배경 */
+  --bg: #f5f7fb; /* 화면 배경 */
+  --card: #ffffff;
+  --line: #dce3f0; /* 테두리 */
+  --line-strong: #cbd5e1;
+  --text: #0f172a;
+  --text-2: #334155;
+  --muted: #475569;
+  --on-dark: #dce6fb; /* 남색 위 보조 글자 */
+  --on-dark-2: #c7d5f5;
+
+  /* 상태 색 (NFR-UI-02) */
+  --present: #16a34a;
+  --present-text: #166534;
+  --present-bg: #dcfce7;
+  --late: #d97706;
+  --late-text: #92400e;
+  --late-bg: #fef3c7;
+  --absent: #dc2626;
+  --absent-text: #b91c1c;
+  --absent-bg: #fee2e2;
+  --none-text: #334155;
+  --none-bg: #e2e8f0;
+  --warn-bg: #fffbeb;
+  --warn-line: #f59e0b;
+
+  --radius: 14px;
+  --shadow: 0 6px 20px rgba(15, 31, 77, 0.08);
+  font-family: 'Noto Sans KR', system-ui, -apple-system, 'Malgun Gothic', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; min-height: 100%; }
+body { background: var(--bg); }
+a { color: var(--navy); }
+a:hover { color: var(--navy-hover); }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* 버튼: 손가락으로 누르기 쉽게 최소 44px */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 0 18px; border-radius: 12px; border: 0;
+  background: var(--navy); color: #fff; font-weight: 700; font-size: 15px;
+  cursor: pointer; text-decoration: none;
+}
+.btn:hover { background: var(--navy-hover); color: #fff; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.secondary { background: #fff; color: var(--text-2); border: 1px solid var(--line-strong); }
+.btn.secondary:hover { background: var(--tint); color: var(--text-2); }
+.btn.danger { background: var(--absent); }
+.btn.block { width: 100%; height: 52px; font-size: 16px; }
+
+.input, .select, .textarea {
+  width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line-strong);
+  border-radius: 10px; background: #fff; font-size: 16px;
+}
+.textarea { padding: 12px 14px; min-height: 110px; resize: vertical; }
+.input:focus, .select:focus, .textarea:focus { outline: 3px solid #dce6fb; border-color: var(--navy); }
+.label { display: block; font-size: 14px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+.field { display: flex; flex-direction: column; margin-bottom: 14px; }
+.error-text { color: var(--absent-text); font-size: 13px; margin-top: 4px; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+
+/* 상태 배지 */
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.badge.present { background: var(--present-bg); color: var(--present-text); }
+.badge.late { background: var(--late-bg); color: var(--late-text); }
+.badge.absent, .badge.canceled { background: var(--absent-bg); color: var(--absent-text); }
+.badge.excused { background: #e0e7ff; color: #3730a3; }
+.badge.none { background: var(--none-bg); color: var(--none-text); }
+.badge.pending_device { background: var(--warn-bg); color: var(--late-text); border: 1px solid var(--warn-line); }
+.badge.suspicious { background: var(--absent); color: #fff; }
+
+/* 표 */
+.table-wrap { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th { text-align: left; background: var(--tint); color: var(--navy); padding: 10px 14px; white-space: nowrap; }
+.table td { padding: 11px 14px; border-top: 1px solid #e2e8f0; vertical-align: middle; }
+
+/* 로고 배지: 로고 원본이 흰 바탕이라 남색 위에서는 흰 배지에 담는다 */
+.logo-badge { flex: none; display: inline-flex; align-items: center; justify-content: center; background: #fff; }
+.logo-badge img { object-fit: contain; display: block; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

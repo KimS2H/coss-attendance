@@ -1,0 +1,226 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 980" width="1500" height="980" font-family="Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,1 L10,5 L0,9 z" fill="#0F1F4D"/>
+    </marker>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,1 L10,5 L0,9 z" fill="#2F5BD3"/>
+    </marker>
+    <style>
+      .zone { fill:#F5F7FB; stroke:#D5DBE5; stroke-width:1; }
+      .zh { font-size:13px; font-weight:700; fill:#1E3A8A; }
+      .box { fill:#FFFFFF; stroke:#1E3A8A; stroke-width:1.6; }
+      .ext { fill:#FFFFFF; stroke:#94A3B8; stroke-width:1.4; }
+      .core { fill:#1E3A8A; stroke:#0F1F4D; stroke-width:1.6; }
+      .db { fill:#FFFFFF; stroke:#1E3A8A; stroke-width:1.6; }
+      .bt { font-size:14px; font-weight:700; fill:#0F1F4D; text-anchor:middle; }
+      .bs { font-size:11px; fill:#475569; text-anchor:middle; }
+      .ct { font-size:15px; font-weight:700; fill:#FFFFFF; text-anchor:middle; }
+      .cs { font-size:11px; fill:#C7D5F5; text-anchor:middle; }
+      .bl { font-size:12px; fill:#334155; }
+      .note { font-size:11px; fill:#64748B; }
+      .flow { stroke:#0F1F4D; stroke-width:1.5; fill:none; marker-end:url(#arr); }
+      .mgmt { stroke:#2F5BD3; stroke-width:1.4; stroke-dasharray:6 4; fill:none; marker-end:url(#arr2); }
+      .lbl { font-size:11px; font-weight:600; fill:#1E3A8A; paint-order:stroke; stroke:#FFFFFF; stroke-width:4px; stroke-linejoin:round; }
+      .lbl2 { font-size:11px; font-weight:600; fill:#2F5BD3; paint-order:stroke; stroke:#FFFFFF; stroke-width:4px; stroke-linejoin:round; }
+      .ft { font-size:13px; fill:#1E293B; }
+      .fn { font-size:13px; font-weight:700; fill:#1E3A8A; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1500" height="980" fill="#FFFFFF"/>
+  <text x="750" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#0F1F4D">IoT 혁신융합대학 비교과 출석체크 — 시스템 구성도</text>
+
+  <!-- ================= 왼쪽: 사용자 기기 ================= -->
+  <rect class="zone" x="30" y="70" width="280" height="250" rx="10"/>
+  <text class="zh" x="45" y="92">사용자 · 인터넷 (아무 기기)</text>
+  <rect class="box" x="50" y="105" width="240" height="90" rx="8"/>
+  <text class="bt" x="170" y="131">학생 스마트폰 · 태블릿</text>
+  <text class="bs" x="170" y="151">브라우저(PWA) · GPS · 기기 쿠키</text>
+  <text class="bs" x="170" y="168">40~50명</text>
+  <rect class="box" x="50" y="210" width="240" height="95" rx="8"/>
+  <text class="bt" x="170" y="236">인솔자 노트북 · 태블릿</text>
+  <text class="bs" x="170" y="256">출석 현황 조회 · 엑셀 업로드</text>
+  <text class="bs" x="170" y="273">강의실 화면에 출석 코드 표시</text>
+
+  <rect class="zone" x="30" y="345" width="280" height="130" rx="10"/>
+  <text class="zh" x="45" y="367">인증된 PC만 (Tailscale 설치)</text>
+  <rect class="box" x="50" y="380" width="240" height="80" rx="8"/>
+  <text class="bt" x="170" y="406">총관리자 PC</text>
+  <text class="bs" x="170" y="426">사무실 지정 PC · 몇몇 인증 PC</text>
+  <text class="bs" x="170" y="443">ID/PW + OTP</text>
+
+  <rect class="zone" x="30" y="500" width="280" height="130" rx="10"/>
+  <text class="zh" x="45" y="522">개발 환경 (서버와 별개)</text>
+  <rect class="box" x="50" y="535" width="240" height="80" rx="8"/>
+  <text class="bt" x="170" y="561">개발 PC</text>
+  <text class="bs" x="170" y="581">코드 작성 · 테스트</text>
+  <text class="bs" x="170" y="598">Docker로 서버와 같은 환경</text>
+
+  <!-- ================= 가운데: 중계 서비스 ================= -->
+  <rect class="ext" x="340" y="110" width="220" height="195" rx="10"/>
+  <text class="bt" x="450" y="136">Tailscale Funnel (무료)</text>
+  <text class="bl" x="356" y="160">· 고정 주소 ○○.ts.net</text>
+  <text class="bl" x="356" y="180">· HTTPS 인증서 자동 발급</text>
+  <text class="bl" x="356" y="200">· 학생·인솔자 화면만 공개</text>
+  <text class="bl" x="356" y="220">· /admin은 공개하지 않음</text>
+  <text class="bl" x="356" y="240">· 도메인 구매 불필요</text>
+  <text class="note" x="356" y="272">공격 차단(WAF)은 없음</text>
+  <text class="note" x="356" y="289">→ Nginx·API에서 요청 횟수 제한</text>
+
+  <rect class="ext" x="340" y="370" width="220" height="100" rx="10"/>
+  <text class="bt" x="450" y="396">Tailscale 사설망 (무료)</text>
+  <text class="bl" x="356" y="420">· 등록된 기기끼리 암호화 연결</text>
+  <text class="bl" x="356" y="440">· 관리자 화면 전용 통로</text>
+
+  <rect class="ext" x="340" y="535" width="220" height="80" rx="10"/>
+  <text class="bt" x="450" y="561">GitHub (공개 저장소)</text>
+  <text class="bs" x="450" y="583">코드 원본 · 배포 기준</text>
+
+  <!-- ================= 오른쪽: 사무실 서버 PC ================= -->
+  <rect x="610" y="70" width="860" height="560" rx="14" fill="#FAFBFE" stroke="#1E3A8A" stroke-width="2.2"/>
+  <text x="630" y="96" font-size="15" font-weight="700" fill="#0F1F4D">사무실 서버 PC · Windows 11</text>
+  <text x="1450" y="96" text-anchor="end" font-size="12" font-weight="600" fill="#2F5BD3">외부에서 들어오는 포트 개방 없음</text>
+
+  <text class="bs" x="715" y="132">진입점 (Windows 앱)</text>
+  <rect class="box" x="630" y="145" width="170" height="295" rx="8"/>
+  <text class="bt" x="715" y="168">Tailscale 클라이언트</text>
+  <rect x="642" y="182" width="146" height="80" rx="6" fill="#EEF3FF" stroke="#C9D6F2"/>
+  <text x="715" y="204" text-anchor="middle" font-size="13" font-weight="700" fill="#1E3A8A">Funnel :443</text>
+  <text class="bs" x="715" y="223">인터넷에 공개</text>
+  <text class="bs" x="715" y="240">→ Nginx 공개 포트</text>
+  <text class="bs" x="715" y="292">한 프로그램이</text>
+  <text class="bs" x="715" y="308">입구 두 개를 연다</text>
+  <rect x="642" y="340" width="146" height="80" rx="6" fill="#EEF3FF" stroke="#C9D6F2"/>
+  <text x="715" y="362" text-anchor="middle" font-size="13" font-weight="700" fill="#1E3A8A">Serve :8443</text>
+  <text class="bs" x="715" y="381">Tailscale 기기만</text>
+  <text class="bs" x="715" y="398">→ Nginx 관리자 포트</text>
+
+  <!-- Docker Compose -->
+  <rect x="825" y="110" width="625" height="350" rx="10" fill="#EEF3FF" stroke="#C9D6F2" stroke-width="1"/>
+  <text class="zh" x="845" y="132">Docker Compose · 컨테이너 자동 재시작</text>
+
+  <rect class="box" x="845" y="150" width="180" height="90" rx="8"/>
+  <text class="bt" x="935" y="176">Nginx</text>
+  <text class="bs" x="935" y="196">프록시 · 화면 파일 · 횟수 제한</text>
+  <text class="bs" x="935" y="213">/admin은 관리자 포트만</text>
+
+  <rect class="core" x="1050" y="150" width="180" height="90" rx="8"/>
+  <text class="ct" x="1140" y="176">API 서버 (NestJS)</text>
+  <text class="cs" x="1140" y="196">로그인 · 출석 판정</text>
+  <text class="cs" x="1140" y="213">엑셀 처리 · 코드 계산</text>
+
+  <!-- Redis (원통) -->
+  <path class="db" d="M1255,160 L1255,230 A90,10 0 0 0 1435,230 L1435,160"/>
+  <ellipse class="db" cx="1345" cy="160" rx="90" ry="10"/>
+  <text class="bt" x="1345" y="190">Redis</text>
+  <text class="bs" x="1345" y="210">로그인 세션 3h</text>
+  <text class="bs" x="1345" y="227">요청 횟수 제한</text>
+
+  <rect class="box" x="845" y="340" width="180" height="90" rx="8"/>
+  <text class="bt" x="935" y="366">상태 점검 (1분마다)</text>
+  <text class="bs" x="935" y="386">API · DB · Redis · 디스크 · 백업</text>
+  <text class="bs" x="935" y="403">이상 시 총관리자 이메일</text>
+
+  <rect class="box" x="1050" y="340" width="180" height="90" rx="8"/>
+  <text class="bt" x="1140" y="366">Worker · 스케줄러</text>
+  <text class="bs" x="1140" y="386">자동 결석 · 10분 우선 거절</text>
+  <text class="bs" x="1140" y="403">일일 백업 · 엑셀 처리</text>
+
+  <!-- PostgreSQL (원통) -->
+  <path class="db" d="M1255,350 L1255,420 A90,10 0 0 0 1435,420 L1435,350"/>
+  <ellipse class="db" cx="1345" cy="350" rx="90" ry="10"/>
+  <text class="bt" x="1345" y="380">PostgreSQL</text>
+  <text class="bs" x="1345" y="400">학생 · 수업 · 출석</text>
+  <text class="bs" x="1345" y="417">원본 데이터</text>
+
+  <!-- 호스트 설정 / 디스크 -->
+  <rect class="box" x="630" y="480" width="170" height="135" rx="8" style="stroke-dasharray:4 3"/>
+  <text x="715" y="502" text-anchor="middle" font-size="13" font-weight="700" fill="#0F1F4D">PC 운영 설정</text>
+  <text class="bl" x="644" y="525">· 자동 로그인</text>
+  <text class="bl" x="644" y="543">· Docker 자동 시작</text>
+  <text class="bl" x="644" y="561">· 업데이트 재시작: 새벽</text>
+  <text class="bl" x="644" y="579">· 절전 끄기</text>
+  <text class="bl" x="644" y="597">· UPS 연결 (정전 대비)</text>
+
+  <rect class="box" x="1255" y="485" width="180" height="110" rx="8"/>
+  <text class="bt" x="1345" y="510">로컬 디스크</text>
+  <text class="bs" x="1345" y="532">DB 데이터 볼륨</text>
+  <text class="bs" x="1345" y="550">일일 백업 (7일 보관)</text>
+  <text class="bs" x="1345" y="568">로그</text>
+
+  <!-- ================= 아래: 외부 서비스 ================= -->
+  <rect class="zone" x="610" y="665" width="860" height="145" rx="10"/>
+  <text class="zh" x="630" y="688">외부 서비스</text>
+
+  <rect class="ext" x="630" y="700" width="200" height="95" rx="8"/>
+  <text class="bt" x="730" y="726">외부 감시</text>
+  <text class="bs" x="730" y="746">UptimeRobot (무료)</text>
+  <text class="bs" x="730" y="763">5분마다 공개 주소 확인</text>
+  <text class="bs" x="730" y="780">서버 PC 꺼짐도 감지</text>
+
+  <rect class="ext" x="850" y="700" width="400" height="95" rx="8"/>
+  <text class="bt" x="1050" y="726">이메일 알림 (SMTP)</text>
+  <text class="bs" x="1050" y="746">장애 → 총관리자 · 기기 승인 요청 → 인솔자</text>
+  <text class="bs" x="1050" y="763">발송 계정은 첫 설정 화면에서 총관리자가 입력</text>
+
+  <rect class="ext" x="1270" y="700" width="180" height="95" rx="8"/>
+  <text class="bt" x="1360" y="726">클라우드 백업</text>
+  <text class="bs" x="1360" y="746">추가 예정 (지금은 직접 복사)</text>
+  <text class="bs" x="1360" y="763">PC 고장 대비 복사본</text>
+
+  <!-- ================= 연결선 ================= -->
+  <!-- 사용자 → Funnel -->
+  <line class="flow" x1="290" y1="150" x2="338" y2="165"/>
+  <line class="flow" x1="290" y1="257" x2="338" y2="245"/>
+  <text class="lbl" x="314" y="208" text-anchor="middle">HTTPS</text>
+  <!-- 총관리자 → Tailscale -->
+  <line class="flow" x1="290" y1="420" x2="338" y2="420"/>
+  <!-- 개발 PC → GitHub / Tailscale -->
+  <line class="flow" x1="290" y1="575" x2="338" y2="575"/>
+  <text class="lbl" x="314" y="566" text-anchor="middle">push</text>
+  <line class="mgmt" x1="290" y1="545" x2="338" y2="462"/>
+  <!-- Funnel ↔ 클라이언트 (서버가 먼저 연결) -->
+  <line class="flow" x1="562" y1="222" x2="640" y2="222" style="marker-start:url(#arr)"/>
+  <text class="lbl" x="600" y="213" text-anchor="middle">Funnel</text>
+  <!-- Tailscale 사설망 → 클라이언트 -->
+  <line class="flow" x1="560" y1="420" x2="640" y2="385"/>
+  <!-- GitHub → 서버 (pull 배포) -->
+  <line class="flow" x1="560" y1="575" x2="612" y2="575"/>
+  <text class="lbl" x="586" y="600" text-anchor="middle">pull</text>
+
+  <!-- 서버 내부 -->
+  <line class="flow" x1="788" y1="222" x2="843" y2="222"/>
+  <line class="flow" x1="788" y1="380" x2="882" y2="242"/>
+  <text class="lbl" x="838" y="315" text-anchor="middle">/admin</text>
+  <line class="flow" x1="1025" y1="195" x2="1048" y2="195"/>
+  <line class="flow" x1="1230" y1="195" x2="1253" y2="195"/>
+  <line class="flow" x1="1200" y1="240" x2="1290" y2="338"/>
+  <line class="flow" x1="1230" y1="385" x2="1253" y2="385"/>
+  <line class="flow" x1="1200" y1="430" x2="1268" y2="483"/>
+  <line class="flow" x1="1345" y1="432" x2="1345" y2="483"/>
+
+  <!-- 서버 → 외부 -->
+  <line class="flow" x1="1345" y1="595" x2="1358" y2="698"/>
+  <text class="lbl" x="1360" y="652">복사본 업로드</text>
+  <line class="mgmt" x1="935" y1="430" x2="948" y2="698"/>
+  <text class="lbl2" x="952" y="652">장애 알림</text>
+  <line class="mgmt" x1="830" y1="747" x2="848" y2="747"/>
+
+  <!-- ================= 주요 흐름 ================= -->
+  <rect x="30" y="830" width="1440" height="135" rx="10" fill="#F5F7FB" stroke="#D5DBE5"/>
+  <text class="zh" x="50" y="856">주요 흐름</text>
+  <line class="flow" x1="1110" y1="852" x2="1150" y2="852"/>
+  <text class="ft" x="1158" y="856" font-size="12">요청 · 데이터</text>
+  <line class="mgmt" x1="1270" y1="852" x2="1310" y2="852"/>
+  <text class="ft" x="1318" y="856" font-size="12">점검 · 알림</text>
+
+  <text class="fn" x="50" y="882">① 출석</text>
+  <text class="ft" x="130" y="882">학생 폰 → Tailscale Funnel(HTTPS, ○○.ts.net) → 서버 PC Tailscale → Nginx 공개 포트 → API → Redis(세션 · 요청 횟수) → PostgreSQL(수업별 잠금 · 저장)</text>
+  <text class="fn" x="50" y="904">② 관리자</text>
+  <text class="ft" x="130" y="904">인증된 PC → Tailscale 사설망 → Serve(:8443) → Nginx 관리자 포트 /admin  (공개 포트로 들어온 /admin 요청은 차단)</text>
+  <text class="fn" x="50" y="926">③ 장애</text>
+  <text class="ft" x="130" y="926">상태 점검 · 외부 감시 → 총관리자 이메일 / 멈춘 컨테이너는 Docker가 자동으로 다시 시작</text>
+  <text class="fn" x="50" y="948">④ 배포</text>
+  <text class="ft" x="130" y="948">개발 PC → GitHub(push) → 서버 PC에서 pull → docker compose로 재시작</text>
+</svg>
