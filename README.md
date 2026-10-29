@@ -3,6 +3,7 @@
 비교과 프로그램 출석 웹앱. 학생은 휴대폰으로 **GPS 위치 + 강의실 코드(4자리, 30초마다 바뀜)** 로 출석하고, 인솔자는 담당 학교 출석을 관리하며, 총관리자는 사무실 PC(서버)에서 전체를 관리한다.
 
 - **진행 상황·남은 일·일정: [docs/진행상황.md](docs/진행상황.md)**
+- **서버 PC 사양·설치·운영: [docs/서버PC_가이드.md](docs/서버PC_가이드.md)**
 - 설계 문서: [`docs/`](docs) — 요구사항·화면 설계서(엑셀), [API 명세](docs/api.md), [ERD](docs/erd.md), [출석 흐름](docs/attendance-flow.md), [시스템 구성](docs/architecture.md), [유스케이스](docs/usecase.md)
 - 기술: TypeScript · React(화면) · NestJS(API) · PostgreSQL · Redis · Docker Compose · Tailscale Funnel
 
@@ -24,16 +25,18 @@
 
 ## 서버 PC에 설치하기 (처음 한 번)
 
+> 최소 사양, 필요한 소프트웨어 버전, 자세한 설치·운영·문제 해결은 **[서버 PC 가이드](docs/서버PC_가이드.md)** 를 본다. 아래는 요약.
+
 1. **프로그램 설치**
    - Docker Desktop (설치 중 "WSL 2" 선택 → 재부팅): https://www.docker.com/products/docker-desktop/
    - Git: `winget install Git.Git`
    - Tailscale: https://tailscale.com/download → 로그인
 2. **코드 받기**: `git clone <저장소 주소> C:\coss-attendance` → `cd C:\coss-attendance`
-3. **비밀 값 파일 만들기**: `copy .env.example .env` 후 메모장으로 열어 `APP_SECRET`, `ADMIN_GATE_SECRET`, `POSTGRES_PASSWORD`를 채운다. 값 만드는 방법은 파일 안에 적혀 있다. **이 파일은 따로 안전하게 보관** (잃어버리면 이메일 설정·OTP를 다시 해야 함).
+3. **비밀 값 파일 만들기**: `powershell -ExecutionPolicy Bypass -File scripts\make-env.ps1` (비밀 값 3개를 자동으로 만들어 `.env`에 저장). **이 파일은 따로 안전하게 보관** (잃어버리면 이메일 설정·OTP를 다시 해야 함).
 4. **켜기**: `docker compose up -d --build` → `docker compose ps`에서 모두 `running`/`healthy`인지 확인
 5. **인터넷에 공개 (Tailscale)**
    - 학생·인솔자용 공개 주소: `tailscale funnel --bg 8080`
-   - 총관리자용 (Tailscale 등록 PC만): `tailscale serve --bg --https=8443 8081`
+   - 총관리자용 (Tailscale 등록 PC만): `tailscale serve --bg --https=8443 http://127.0.0.1:8081`
    - 주소 확인: `tailscale funnel status` → `https://<PC이름>.<tailnet>.ts.net`
    - Tailscale 관리 콘솔에서 MagicDNS·HTTPS 켜기, 접근 정책에 Funnel 허용 추가 ([architecture.md](docs/architecture.md))
 6. **첫 설정**: 등록된 PC에서 `https://<PC이름>.<tailnet>.ts.net:8443/admin` 접속 → 총관리자 계정 → OTP(휴대폰 Google Authenticator) → 이메일 발송 계정(Gmail은 2단계 인증 후 "앱 비밀번호") → 완료
