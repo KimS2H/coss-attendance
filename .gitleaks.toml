@@ -6,6 +6,9 @@ useDefault = true
 id = "coss-env-secret"
 description = "APP_SECRET / ADMIN_GATE_SECRET / POSTGRES_PASSWORD에 실제 값이 들어감"
 regex = '''(?i)(APP_SECRET|ADMIN_GATE_SECRET|POSTGRES_PASSWORD)\s*=\s*['"]?[A-Za-z0-9_\-+/=]{12,}'''
+# 자동 테스트 코드에는 가짜 값만 있다
+[rules.allowlist]
+paths = ['''^apps/api/test/''']
 
 [[rules]]
 id = "coss-tailnet-address"
