@@ -1,20 +1,19 @@
-// L-03 강의실 코드 화면 (프로젝터·TV에 띄우는 전체 화면).
-// - GET /api/staff/sessions/:id/code 로 코드와 남은 시간을 받는다
+// L-03 강의실 코드 화면 (프로젝터·TV에 띄우는 전체 화면). 총관리자 화면(/admin/code/:id)에서 쓴다.
+// - codeUrl(GET) 로 코드와 남은 시간을 받는다
 // - 남은 시간은 화면에서 1초씩 줄이고, 0이 되면 새 코드를 다시 받는다
 // - 출석 인원을 위해 10초마다도 다시 받는다
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { api, errorMessage } from '../../api/client';
-import type { RoomCode } from '../../api/types';
-import { LogoBadge, SERVICE_NAME } from '../../components/Brand';
-import { addMinutes } from '../../components/format';
-import { useInterval } from '../../components/hooks';
+import { api, errorMessage } from '../api/client';
+import type { RoomCode } from '../api/types';
+import { LogoBadge, SERVICE_NAME } from './Brand';
+import { addMinutes } from './format';
+import { useInterval } from './hooks';
+import './room-code.css';
 
 const CODE_PERIOD = 30; // 코드가 바뀌는 간격(초)
 
-export default function CodePage() {
-  const { sessionId } = useParams();
-  const navigate = useNavigate();
+/** codeUrl: 코드를 받을 주소, onClose: "코드 표시 종료"를 눌렀을 때 */
+export default function RoomCodeScreen({ codeUrl, onClose }: { codeUrl: string; onClose: () => void }) {
   const [rc, setRc] = useState<RoomCode | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [error, setError] = useState('');
@@ -24,7 +23,7 @@ export default function CodePage() {
     if (fetching.current) return;
     fetching.current = true;
     try {
-      const res = await api.get<RoomCode>(`/api/staff/sessions/${sessionId}/code`);
+      const res = await api.get<RoomCode>(codeUrl);
       setRc(res);
       setSecondsLeft(Math.max(1, res.secondsLeft)); // 0이 오면 1초 뒤에 다시 받기
       setError('');
@@ -34,7 +33,7 @@ export default function CodePage() {
     } finally {
       fetching.current = false;
     }
-  }, [sessionId]);
+  }, [codeUrl]);
 
   useEffect(() => {
     void load();
@@ -70,7 +69,7 @@ export default function CodePage() {
         // 무시
       }
     }
-    navigate('/staff');
+    onClose();
   }
 
   const s = rc?.session;
@@ -78,7 +77,7 @@ export default function CodePage() {
   const percent = Math.min(100, Math.max(0, (secondsLeft / CODE_PERIOD) * 100));
 
   return (
-    <div className="sf-code-screen">
+    <div className="rc-screen">
       {/* 위: 수업 이름 + 출석 인원 */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -103,9 +102,9 @@ export default function CodePage() {
       {/* 가운데: 큰 숫자 4개 + 남은 시간 막대 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28, padding: '24px 0' }}>
         <p style={{ margin: 0, fontSize: 24, color: 'var(--on-dark)', textAlign: 'center' }}>휴대폰에서 출석 버튼을 누르고 이 숫자를 입력하세요</p>
-        <div className="sf-code-digits" role="img" aria-label={`출석 코드 ${rc?.code ?? ''}`}>
+        <div className="rc-digits" role="img" aria-label={`출석 코드 ${rc?.code ?? ''}`}>
           {digits.map((d, i) => (
-            <span key={i} className="sf-code-digit">
+            <span key={i} className="rc-digit">
               {d}
             </span>
           ))}
@@ -126,10 +125,10 @@ export default function CodePage() {
           {SERVICE_NAME}
         </span>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button type="button" className="sf-code-btn" onClick={() => void fullscreen()}>
+          <button type="button" className="rc-btn" onClick={() => void fullscreen()}>
             전체 화면
           </button>
-          <button type="button" className="sf-code-btn" onClick={() => void close()}>
+          <button type="button" className="rc-btn" onClick={() => void close()}>
             코드 표시 종료
           </button>
         </div>

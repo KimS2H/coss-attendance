@@ -1,7 +1,6 @@
 // 인솔자(담당자) 화면 묶음. 주소는 모두 /staff 아래.
 //   /staff/verify            2차 인증 (학교 코드)
 //   /staff                   출석 현황
-//   /staff/code/:sessionId   강의실 코드 (프로젝터용 전체 화면)
 //   /staff/devices           기기 승인
 //   /staff/support           문의함
 //   /staff/students          학생·수강 관리
@@ -15,7 +14,6 @@ import type { StaffContext } from './context';
 import StaffLayout from './StaffLayout';
 import VerifyPage from './VerifyPage';
 import AttendancePage from './AttendancePage';
-import CodePage from './CodePage';
 import DevicesPage from './DevicesPage';
 import SupportPage from './SupportPage';
 import StudentsPage from './StudentsPage';
@@ -30,8 +28,6 @@ export default function StaffRoutes() {
       {/* 2차 인증은 반쯤 로그인된 상태라 로그인 확인(StaffGate) 밖에 둔다 */}
       <Route path="verify" element={<VerifyPage />} />
       <Route element={<StaffGate />}>
-        {/* 프로젝터용 코드 화면은 위쪽 메뉴 없이 전체 화면 */}
-        <Route path="code/:sessionId" element={<CodePage />} />
         <Route element={<StaffLayout />}>
           <Route index element={<AttendancePage />} />
           <Route path="devices" element={<DevicesPage />} />

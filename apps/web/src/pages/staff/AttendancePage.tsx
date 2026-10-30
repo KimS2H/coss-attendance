@@ -7,7 +7,7 @@ import { api, errorMessage } from '../../api/client';
 import type { AttendanceList, AttendanceRow, StaffSession } from '../../api/types';
 import { fmtDateLabel, fmtTime, nowKstHHMM, STATUS_LABEL, todayKst } from '../../components/format';
 import { useInterval } from '../../components/hooks';
-import { IconDownload, IconScreen } from '../../components/Icons';
+import { IconDownload } from '../../components/Icons';
 import { ChangeRequestModal } from './ChangeRequestForm';
 import { useStaff } from './context';
 
@@ -106,17 +106,7 @@ export default function AttendancePage() {
             {selected && ` · ${selected.period}교시 ${selected.courseName} · ${selected.locationName} · ${selected.startTime}–${selected.endTime}`}
           </p>
         </div>
-        {selected ? (
-          <Link to={`/staff/code/${selected.id}`} className="btn" style={{ height: 48 }}>
-            <IconScreen size={20} />
-            강의실 코드 띄우기
-          </Link>
-        ) : (
-          <button type="button" className="btn" disabled title="수업을 먼저 고르세요">
-            <IconScreen size={20} />
-            강의실 코드 띄우기
-          </button>
-        )}
+        {/* 강의실 코드 화면은 총관리자가 띄운다 (인솔자 화면에는 없음) */}
       </div>
 
       {/* 거르기 */}

@@ -53,8 +53,6 @@ erDiagram
     int id PK
     varchar username UK
     varchar password_hash
-    varchar otp_secret_enc "OTP 비밀키 암호화"
-    bool otp_verified "첫 설정 OTP 확인"
     bool is_active
     timestamptz last_login_at
   }

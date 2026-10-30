@@ -1,6 +1,6 @@
 // 암호화·해시 도우미. 모두 .env의 APP_SECRET을 열쇠로 쓴다.
 //  - hmac: 되돌릴 수 없는 해시 (학교 코드, 기기 쿠키). DB가 새도 원래 값을 알 수 없다.
-//  - encrypt/decrypt: 되돌릴 수 있는 암호화 (이메일 비밀번호, OTP 비밀키).
+//  - encrypt/decrypt: 되돌릴 수 있는 암호화 (이메일 비밀번호).
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { config } from '../config';
 

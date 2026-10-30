@@ -1,0 +1,20 @@
+/* 강의실 코드 (프로젝터) 화면 — components/RoomCodeScreen.tsx */
+.rc-screen {
+  min-height: 100vh; background: var(--navy-dark); color: #fff; padding: 40px 56px;
+  display: flex; flex-direction: column; box-sizing: border-box;
+}
+@media (max-width: 800px) { .rc-screen { padding: 24px 20px; } }
+.rc-digits { display: flex; gap: 24px; }
+.rc-digit {
+  width: 170px; height: 210px; border-radius: 28px; background: #fff; color: var(--navy-dark);
+  font-size: 150px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+@media (max-width: 900px) {
+  .rc-digits { gap: 12px; }
+  .rc-digit { width: 20vw; height: 25vw; font-size: 17vw; border-radius: 18px; }
+}
+.rc-btn {
+  display: flex; align-items: center; min-height: 48px; padding: 0 20px; border: 1px solid rgba(199, 213, 245, 0.5);
+  border-radius: 12px; font-size: 16px; font-weight: 500; background: transparent; color: #fff; cursor: pointer;
+}
+.rc-btn:hover { background: rgba(255, 255, 255, 0.08); }

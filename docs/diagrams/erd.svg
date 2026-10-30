@@ -152,15 +152,15 @@
 <text x="100" y="614.5" font-size="12" fill="#0F172A">password_hash</text>
 <text x="300" y="614.5" text-anchor="end" font-size="11" fill="#64748B">varchar</text>
 <rect x="61" y="620" width="248" height="20" fill="#F3F6FC"/>
-<text x="100" y="634.5" font-size="12" fill="#0F172A">otp_secret_enc</text>
-<text x="300" y="634.5" text-anchor="end" font-size="11" fill="#64748B">varchar</text>
-<text x="100" y="654.5" font-size="12" fill="#0F172A">otp_verified</text>
-<text x="300" y="654.5" text-anchor="end" font-size="11" fill="#64748B">bool</text>
-<rect x="61" y="660" width="248" height="20" fill="#F3F6FC"/>
-<text x="100" y="674.5" font-size="12" fill="#0F172A">is_active</text>
-<text x="300" y="674.5" text-anchor="end" font-size="11" fill="#64748B">bool</text>
-<text x="100" y="694.5" font-size="12" fill="#0F172A">last_login_at</text>
-<text x="300" y="694.5" text-anchor="end" font-size="11" fill="#64748B">timestamptz</text>
+<text x="100" y="634.5" font-size="12" fill="#0F172A">is_active</text>
+<text x="300" y="634.5" text-anchor="end" font-size="11" fill="#64748B">bool</text>
+<text x="100" y="654.5" font-size="12" fill="#0F172A">last_login_at</text>
+<text x="300" y="654.5" text-anchor="end" font-size="11" fill="#64748B">timestamptz</text>
+
+
+
+
+
 </g>
 <g>
 <rect x="400" y="110" width="250" height="190" rx="6" fill="#FFFFFF" stroke="#1E3A8A" stroke-width="1.6"/>

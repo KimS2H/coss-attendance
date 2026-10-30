@@ -200,8 +200,7 @@ export type ImportPreview = {
 export type ImportResult = { created: number; updated: number; skipped: number };
 
 // ---------- 총관리자 ----------
-export type SetupStatus = { completed: boolean; step: 'account' | 'otp' | 'smtp' | 'done' };
-export type SetupAccountResponse = { otpauthUrl: string; qrDataUrl: string };
+export type SetupStatus = { completed: boolean; step: 'account' | 'smtp' | 'done' };
 export type SmtpInput = { host: string; port: number; secure: boolean; user: string; password: string; fromName: string; testTo: string };
 export type SmtpSettings = { host: string; port: number; secure: boolean; user: string; fromName: string; passwordSet: boolean };
 

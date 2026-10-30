@@ -12,7 +12,7 @@
 | 형식 | 요청·응답 모두 JSON (엑셀 업로드·다운로드 제외) |
 | 시각 | 서버 시각 기준. 응답은 ISO 8601(UTC, 예: `2026-11-05T01:02:15.000Z`), 화면에서 한국 시간으로 표시 |
 | 날짜 | 수업 날짜는 `YYYY-MM-DD` (한국 날짜) |
-| 로그인 | 로그인하면 서버가 `sid` 쿠키(HttpOnly, SameSite=Strict, HTTPS에서만)를 준다. 세션은 Redis에 3시간 저장되고 연장하지 않는다 |
+| 로그인 | 로그인하면 서버가 역할별 쿠키를 준다: 학생 `sid_s` · 인솔자 `sid_t` · 총관리자 `sid_a` (HttpOnly, SameSite=Strict, HTTPS에서만). 학생·인솔자 세션은 Redis에 3시간(연장 없음), 총관리자는 로그아웃할 때까지(최대 400일). 화면은 요청마다 `X-Coss-Area` 헤더(`student`·`staff`·`admin`)로 지금 화면을 알려 주고, 서버는 그 쿠키를 읽는다 (한 PC에서 여러 역할로 로그인해도 섞이지 않게, 2026-10-30). 헤더가 없으면 주소(`/api/admin`·`/api/staff`·`/api/student`)로 정한다 |
 | 기기 식별 | 처음 접속한 브라우저에 서버가 `did` 쿠키(HttpOnly, 400일)를 준다. DB에는 이 값의 해시만 저장한다 (`devices.fingerprint_hash`) |
 | 오류 | HTTP 상태 코드 + `{ "error": { "code": "WRONG_CODE", "message": "강의실 코드가 맞지 않아요" } }`. `message`는 화면에 그대로 보여 줄 수 있는 한국어 |
 | 요청 횟수 제한 | 로그인: 계정당 5분에 10회, IP당 5분에 120회 (학교 Wi-Fi는 IP를 같이 쓰므로 넉넉하게). 관리자 로그인: 계정당 5분 10회, IP당 30회. 학교 코드: 5번 틀리면 처음부터 다시 로그인. 출석: 학생당 1분에 10회. 학생 문의: 1시간에 10회. 전체(Nginx 공개 입구): 접속자당 초당 10회, 순간 60회까지 |
@@ -145,7 +145,6 @@
 | | 메서드·주소 | 내용 |
 |---|---|---|
 | ✅ | `GET /api/staff/sessions?date=2026-11-05` | 그날 수업 목록 (담당 학교 수강생이 있는 수업) + 출석 인원 |
-| ✅ | `GET /api/staff/sessions/:id/code` | 강의실 코드 `{ "code": "4827", "secondsLeft": 18, "attended": 32, "enrolled": 45 }`. 화면이 1초마다 남은 시간을 줄이고 0이 되면 다시 부름 |
 | ✅ | `GET /api/staff/attendance?date=&sessionId=&status=&q=` | 출석 현황 표 (학번·이름·위치·날짜·참가여부·동일기기 의심). `status`: 출석 상태 값, `absent`(출석 취소 포함), `suspicious`(동일기기 의심만) |
 | ✅ | `GET /api/staff/attendance/export?…&format=xlsx\|csv` | 다운로드 (컬럼은 엑셀 설계서 "엑셀 양식" ⑥) |
 | ✅ | `GET /api/staff/device-approvals?status=pending` | 기기 승인 요청 목록 (다른 학생의 등록 기기면 `ownerName` 표시) |
@@ -165,13 +164,12 @@
 | 메서드·주소 | 내용 |
 |---|---|
 | `GET /api/admin/setup/status` | `{ "completed": false, "step": "account" }` |
-| `POST /api/admin/setup/account` | `{ "username", "password" }` → OTP 등록용 `{ "otpauthUrl", "qrDataUrl" }`. 총관리자가 한 명도 없을 때만 가능 |
-| `POST /api/admin/setup/otp` | `{ "otp": "123456" }` 확인 |
+| `POST /api/admin/setup/account` | `{ "username", "password" }` → 204. 첫 설정을 끝내기 전이면 다시 보내서 바꿀 수 있음 |
 | `POST /api/admin/setup/smtp` | `{ "host", "port", "user", "password", "fromName", "testTo" }` → 테스트 메일 발송 후 저장 |
 | `POST /api/admin/setup/complete` | 첫 설정 완료. 이후 setup API는 모두 `409` |
 
 ### 로그인 ✅
-`POST /api/admin/auth/login` `{ "username", "password", "otp" }`
+`POST /api/admin/auth/login` `{ "username", "password" }` (OTP는 2026-10-30 없앰. 관리자 입구는 Tailscale 기기에서만 열림)
 
 ### 관리 기능
 | | 메서드·주소 | 내용 |
@@ -180,6 +178,7 @@
 | ✅ | `GET/POST/PATCH /api/admin/staff` | 인솔자 계정 (이메일·권한·비활성화) |
 | ✅ | `GET/POST/PATCH /api/admin/locations` | 장소 (좌표·허용 반경) |
 | ✅ | `GET/POST/PATCH/DELETE /api/admin/sessions` | 수업 일정 (과목·날짜·교시·시각·장소) |
+| ✅ | `GET /api/admin/sessions/:id/code` | 강의실 코드 `{ "code": "4827", "secondsLeft": 18, "attended": 32, "enrolled": 45 }` (출석 인원은 전체 학교 합계). 총관리자가 "장소·일정"에서 그때그때 띄움. 화면이 1초마다 남은 시간을 줄이고 0이 되면 다시 부름. 2026-10-30 인솔자에서 옮김 |
 | ✅ | `POST /api/admin/import/{staff\|locations\|sessions}/preview` → `confirm` | 인솔자·장소·수업 일정 엑셀 등록 |
 | ✅ | `GET /api/admin/attendance` · `/export` | 전체 출석 현황 (학교 필터) |
 | ✅ | `GET /api/admin/change-requests?status=pending\|auto_rejected\|done` | 출결 변경 승인 대기·재검토 대기·처리 완료 |
@@ -220,7 +219,6 @@
 | `POST /api/student/attendance` | `AttendRequest` | `AttendResponse` |
 | `GET /api/student/tickets` · `POST` | `NewTicket` | `Ticket[]` · `Ticket` |
 | `GET /api/staff/sessions?date=` | | `StaffSession[]` |
-| `GET /api/staff/sessions/:id/code` | | `RoomCode` |
 | `GET /api/staff/attendance?date=&sessionId=&status=&q=` | | `AttendanceList` |
 | `GET /api/staff/attendance/export?…&format=xlsx\|csv` | | 파일 |
 | `GET /api/staff/device-approvals?status=pending\|done` | | `DeviceApproval[]` |
@@ -236,12 +234,12 @@
 | `POST /api/staff/tickets/:id/messages` · `/escalate` · `/resolve` | `{ body }` · `{}` · `{}` | `Ticket` |
 | `GET /api/admin/setup/status` | | `SetupStatus` |
 | `POST /api/admin/setup/account` | `{ username, password }` | `SetupAccountResponse` |
-| `POST /api/admin/setup/otp` | `{ otp }` | 204 |
 | `POST /api/admin/setup/smtp` | `SmtpInput` | 204 (테스트 메일 실패 시 400) |
 | `POST /api/admin/setup/complete` | | 204 |
-| `POST /api/admin/auth/login` | `{ username, password, otp }` | `AdminMe` |
+| `POST /api/admin/auth/login` | `{ username, password }` | `AdminMe` |
 | `GET /api/admin/dashboard` | | `Dashboard` |
 | `GET /api/admin/schools` · `POST` · `PATCH /:id` | `{ name }` | `AdminSchool[]` · `AdminSchool` |
+| `GET /api/admin/sessions/:id/code` | | `RoomCode` |
 | `PUT /api/admin/schools/:id/code` | `{ code }` (숫자 4자리) | `AdminSchool` |
 | `GET /api/admin/staff` · `POST` · `PATCH /:id` | `StaffInput` | `AdminStaff[]` · `AdminStaff` |
 | `GET /api/admin/locations` · `POST` · `PATCH /:id` | `LocationInput` | `AdminLocation[]` · `AdminLocation` |

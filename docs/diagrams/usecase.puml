@@ -52,7 +52,7 @@ rectangle "🎓 IoT 혁신융합대학 비교과 출석체크 (coss-attendance)"
   }
 
   package "총관리자 전용" {
-    usecase "관리자 로그인\n(Tailscale + OTP)" as A01
+    usecase "관리자 로그인\n(Tailscale + 아이디·비밀번호)" as A01
     usecase "학교·인솔자 계정 관리\n(학교 코드 발급·변경)" as A02
     usecase "장애 현황 확인" as A03
     usecase "장소·일정 관리\n(좌표·반경·교시)" as A05
@@ -60,7 +60,7 @@ rectangle "🎓 IoT 혁신융합대학 비교과 출석체크 (coss-attendance)"
     usecase "문의·오류 처리\n(이관 문의·인솔자 문의·전체 기록)" as A07
     usecase "관리자 대시보드" as A08
     usecase "대리 출석 불이익 처리\n(벌점·수료 불가)" as A09
-    usecase "첫 설정 · 이메일 설정\n(관리자 계정·OTP·발송 계정)" as A10
+    usecase "첫 설정 · 이메일 설정\n(관리자 계정·발송 계정)" as A10
   }
 
   package "자동 처리" {

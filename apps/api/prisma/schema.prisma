@@ -52,8 +52,6 @@ model Admin {
   id           Int       @id @default(autoincrement())
   username     String    @unique
   passwordHash String    @map("password_hash")
-  otpSecretEnc String    @map("otp_secret_enc") // OTP 비밀키 (APP_SECRET으로 암호화)
-  otpVerified  Boolean   @default(false) @map("otp_verified") // 첫 설정에서 OTP 확인을 마쳤는지
   isActive     Boolean   @default(true) @map("is_active")
   lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(3)
 

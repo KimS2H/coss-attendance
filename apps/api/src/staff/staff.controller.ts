@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { AttendanceService } from '../attendance/attendance.service';
 import { ChangeRequestsService } from '../attendance/change-requests.service';
 import { ListingService } from '../attendance/listing.service';
-import { roomCodeAt } from '../attendance/rules';
 import { TicketsService } from '../attendance/tickets.service';
 import { AuditService } from '../common/audit.service';
 import { Errors, parse } from '../common/errors';
@@ -62,21 +61,13 @@ export class StaffController {
     if (t.permission !== 'edit') throw Errors.forbidden('보기 권한만 있어요. 총관리자에게 수정 권한을 요청해 주세요.');
   }
 
-  // ---------- 수업·강의실 코드 ----------
+  // ---------- 수업 목록 (출석 현황 거르기용) ----------
   @Get('sessions')
   sessions(@Auth() s: AuthSession, @Query('date') date?: string) {
     return this.listing.sessionsOn(isDateStr(date) ? date : kstToday(), s.schoolId);
   }
 
-  @Get('sessions/:id/code')
-  async code(@Param('id', ParseIntPipe) id: number, @Auth() s: AuthSession) {
-    const session = await this.prisma.session.findUnique({ where: { id }, include: { course: true, location: true } });
-    if (!session) throw Errors.notFound('수업');
-    const list = await this.listing.sessionsOn(session.classDate.toISOString().slice(0, 10), s.schoolId);
-    const info = list.find((x) => x.id === id);
-    if (!info) throw Errors.forbidden('담당 학교 학생이 듣는 수업이 아니에요.');
-    return { ...roomCodeAt(id), attended: info.attended, enrolled: info.enrolled, session: info };
-  }
+  // 강의실 코드 화면은 총관리자만 띄운다 (GET /api/admin/sessions/:id/code)
 
   // ---------- 출석 현황 ----------
   @Get('attendance')

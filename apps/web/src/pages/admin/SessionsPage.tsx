@@ -4,8 +4,10 @@
 //      GET/POST/PATCH /api/admin/locations  (삭제 API 는 없음)
 //  아래: 수업 일정 표 — 기간을 골라 보고, 추가·수정·삭제
 //      GET /api/admin/sessions?from=&to=, POST, PATCH /:id, DELETE /:id
+//      "코드 띄우기" → /admin/code/:id (강의실 코드 프로젝터 화면)
 // ─────────────────────────────────────────────
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../../api/client';
 import type { AdminLocation, AdminSession, LocationInput, SessionInput } from '../../api/types';
 import { addDays, adminError, fmtDateLabel, todayKST } from '../../components/admin/format';
@@ -233,6 +235,10 @@ function SessionsSection({ locations }: { locations: AdminLocation[] }) {
                 <td className="num">{s.enrolled}</td>
                 <td>
                   <div className="adm-row" style={{ gap: 6 }}>
+                    {/* 강의실 코드는 총관리자가 수업마다 그때그때 띄운다 (프로젝터용 전체 화면) */}
+                    <Link to={`/admin/code/${s.id}`} className="btn sm" style={{ whiteSpace: 'nowrap' }}>
+                      코드 띄우기
+                    </Link>
                     <button type="button" className="btn secondary sm" onClick={() => setEditing(s)}>
                       수정
                     </button>

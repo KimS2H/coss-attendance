@@ -1,5 +1,5 @@
 // API 호출 도우미. 모든 화면은 이 함수들로 서버와 통신한다.
-// 로그인 정보는 서버가 준 쿠키(sid)로 자동 전송되므로 화면에서 따로 저장하지 않는다.
+// 로그인 정보는 서버가 준 쿠키(sid_s·sid_t·sid_a)로 자동 전송되므로 화면에서 따로 저장하지 않는다.
 import type { ApiError } from './types';
 
 export class ApiRequestError extends Error {
@@ -14,6 +14,17 @@ export class ApiRequestError extends Error {
   }
 }
 
+/**
+ * 지금 화면이 어느 구역인지 (서버가 그 구역의 로그인 쿠키를 읽는다).
+ * 한 컴퓨터에서 관리자·인솔자·학생 화면을 같이 열어도 로그인이 섞이지 않게 한다.
+ */
+function currentArea(): 'student' | 'staff' | 'admin' {
+  const p = window.location.pathname;
+  if (p === '/admin' || p.startsWith('/admin/')) return 'admin';
+  if (p === '/staff' || p.startsWith('/staff/')) return 'staff';
+  return 'student';
+}
+
 async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
   const isForm = body instanceof FormData;
   let res: Response;
@@ -21,7 +32,7 @@ async function request<T>(method: string, url: string, body?: unknown): Promise<
     res = await fetch(url, {
       method,
       credentials: 'same-origin',
-      headers: body === undefined || isForm ? {} : { 'Content-Type': 'application/json' },
+      headers: { 'X-Coss-Area': currentArea(), ...(body === undefined || isForm ? {} : { 'Content-Type': 'application/json' }) },
       body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
   } catch {

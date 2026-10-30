@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { AttendanceService } from '../attendance/attendance.service';
 import { ChangeRequestsService } from '../attendance/change-requests.service';
 import { ListingService } from '../attendance/listing.service';
+import { roomCodeAt } from '../attendance/rules';
 import { TicketsService } from '../attendance/tickets.service';
 import { AuditService } from '../common/audit.service';
 import { hashSchoolCode } from '../common/crypto';
@@ -180,6 +181,20 @@ export class AdminController {
       orderBy: [{ classDate: 'asc' }, { startTime: 'asc' }, { period: 'asc' }],
     });
     return list.map(sessionOut);
+  }
+
+  /**
+   * 강의실 코드 화면 (프로젝터용). 총관리자가 수업마다 그때그때 띄운다.
+   * 코드는 수업마다 30초씩 바뀌고, 이 화면을 띄운 사람만 알 수 있다.
+   * 출석 인원은 모든 학교 학생을 합친 수.
+   */
+  @Get('sessions/:id/code')
+  async code(@Param('id', ParseIntPipe) id: number) {
+    const session = await this.prisma.session.findUnique({ where: { id } });
+    if (!session) throw Errors.notFound('수업');
+    const info = (await this.listing.sessionsOn(dateOnly(session.classDate))).find((x) => x.id === id);
+    if (!info) throw Errors.notFound('수업');
+    return { ...roomCodeAt(id), attended: info.attended, enrolled: info.enrolled, session: info };
   }
 
   @Post('sessions')

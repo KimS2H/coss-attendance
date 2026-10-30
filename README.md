@@ -32,14 +32,14 @@
    - Git: `winget install Git.Git`
    - Tailscale: https://tailscale.com/download → 로그인
 2. **코드 받기**: `git clone <저장소 주소> C:\coss-attendance` → `cd C:\coss-attendance`
-3. **비밀 값 파일 만들기**: `powershell -ExecutionPolicy Bypass -File scripts\make-env.ps1` (비밀 값 3개를 자동으로 만들어 `.env`에 저장). **이 파일은 따로 안전하게 보관** (잃어버리면 이메일 설정·OTP를 다시 해야 함).
+3. **비밀 값 파일 만들기**: `powershell -ExecutionPolicy Bypass -File scripts\make-env.ps1` (비밀 값 3개를 자동으로 만들어 `.env`에 저장). **이 파일은 따로 안전하게 보관** (잃어버리면 이메일 설정을 다시 해야 함).
 4. **켜기**: `docker compose up -d --build` → `docker compose ps`에서 모두 `running`/`healthy`인지 확인
 5. **인터넷에 공개 (Tailscale)**
    - 학생·인솔자용 공개 주소: `tailscale funnel --bg 8080`
    - 총관리자용 (Tailscale 등록 PC만): `tailscale serve --bg --https=8443 http://127.0.0.1:8081`
    - 주소 확인: `tailscale funnel status` → `https://<PC이름>.<tailnet>.ts.net`
    - Tailscale 관리 콘솔에서 MagicDNS·HTTPS 켜기, 접근 정책에 Funnel 허용 추가 ([architecture.md](docs/architecture.md))
-6. **첫 설정**: 등록된 PC에서 `https://<PC이름>.<tailnet>.ts.net:8443/admin` 접속 → 총관리자 계정 → OTP(휴대폰 Google Authenticator) → 이메일 발송 계정(Gmail은 2단계 인증 후 "앱 비밀번호") → 완료
+6. **첫 설정**: 등록된 PC에서 `https://<PC이름>.<tailnet>.ts.net:8443/admin` 접속 → 총관리자 계정 → 이메일 발송 계정(Gmail은 2단계 인증 후 "앱 비밀번호") → 완료
 7. **데이터 넣기** (총관리자 화면): 계정·학교 코드에서 학교 등록·학교 코드 정하기 → 엑셀 등록에서 인솔자 → 장소 → 수업 일정 → 학생·수강 순서로 올리기
 8. **PC 설정**: Windows 자동 로그인, Docker Desktop "로그인 시 시작", 절전 끄기, 업데이트 재시작 시간을 새벽으로
 

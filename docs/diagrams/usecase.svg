@@ -145,7 +145,7 @@
 
   <!-- ========== 총관리자 전용 ========== -->
   <ellipse class="uc" cx="1165" cy="800" rx="110" ry="28"/>
-  <text class="t" x="1165" y="797">관리자 로그인</text><text class="s" x="1165" y="814">인증 PC(Tailscale) + OTP</text>
+  <text class="t" x="1165" y="797">관리자 로그인</text><text class="s" x="1165" y="814">인증 기기(Tailscale) + 아이디·비밀번호</text>
 
   <ellipse class="uc" cx="1165" cy="866" rx="110" ry="28"/>
   <text class="t" x="1165" y="863">학교 · 인솔자 계정 관리</text><text class="s" x="1165" y="880">학교 코드(4자리) 발급 · 변경</text>
@@ -169,7 +169,7 @@
   <text class="t" x="1165" y="1259">대리 출석 불이익 처리</text><text class="s" x="1165" y="1276">출석 취소 · 벌점 · 수료 불가</text>
 
   <ellipse class="uc" cx="900" cy="880" rx="100" ry="28"/>
-  <text class="t" x="900" y="877">첫 설정 · 이메일 설정</text><text class="s" x="900" y="894">관리자 계정 · OTP · 발송 계정</text>
+  <text class="t" x="900" y="877">첫 설정 · 이메일 설정</text><text class="s" x="900" y="894">관리자 계정 · 발송 계정</text>
 
   <!-- ========== 액터: 학생 ========== -->
   <g>

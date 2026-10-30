@@ -1,11 +1,10 @@
-// 실제 DB로 전체 흐름 테스트: 첫 설정 → 관리자 등록 → 학생 출석 → 대리 출석(기기 주인 유지) → 기기 승인 → 출결 변경(10분 우선 거절)
+// 실제 DB로 전체 흐름 테스트: 첫 설정(계정·이메일) → 관리자 등록 → 학생 출석 → 대리 출석(기기 주인 유지) → 기기 승인 → 출결 변경(10분 우선 거절)
 process.env.NODE_ENV = 'test';
 process.env.APP_SECRET = 'test-secret-test-secret-test-secret-1234';
 process.env.REDIS_URL = '';
 
 import type { INestApplication } from '@nestjs/common';
 import ExcelJS from 'exceljs';
-import { authenticator } from 'otplib';
 import request from 'supertest';
 import { roomCodeAt } from '../src/attendance/rules';
 import { ChangeRequestsService } from '../src/attendance/change-requests.service';
@@ -16,6 +15,8 @@ import { MailService } from '../src/mail/mail.service';
 /** 쿠키를 직접 들고 다니는 간단한 브라우저 흉내 (같은 기기 = 같은 did 쿠키) */
 class Browser {
   cookies: Record<string, string> = {};
+  /** 지금 보고 있는 화면 구역 (실제 화면은 api/client.ts 가 X-Coss-Area 로 보냄). 비우면 안 보냄 */
+  area = '';
   constructor(private app: INestApplication) {}
   private store(res: request.Response) {
     const set = res.headers['set-cookie'] as unknown as string[] | undefined;
@@ -30,14 +31,17 @@ class Browser {
   private header() {
     return Object.entries(this.cookies).map(([k, v]) => `${k}=${v}`).join('; ');
   }
+  private headers(): Record<string, string> {
+    return this.area ? { Cookie: this.header(), 'X-Coss-Area': this.area } : { Cookie: this.header() };
+  }
   async get(url: string) {
-    return this.store(await request(this.app.getHttpServer()).get(url).set('Cookie', this.header()));
+    return this.store(await request(this.app.getHttpServer()).get(url).set(this.headers()));
   }
   async post(url: string, body: object = {}) {
-    return this.store(await request(this.app.getHttpServer()).post(url).set('Cookie', this.header()).send(body));
+    return this.store(await request(this.app.getHttpServer()).post(url).set(this.headers()).send(body));
   }
   async put(url: string, body: object = {}) {
-    return this.store(await request(this.app.getHttpServer()).put(url).set('Cookie', this.header()).send(body));
+    return this.store(await request(this.app.getHttpServer()).put(url).set(this.headers()).send(body));
   }
   /** 같은 폰에서 다른 사람이 로그인: did는 유지, 로그인 세션만 비움 */
   sameDeviceNewUser() {
@@ -97,21 +101,20 @@ describe('출석 전체 흐름', () => {
     await app.close();
   });
 
-  it('첫 설정: 계정 → OTP → 이메일 → 완료, 그 뒤 관리자 로그인', async () => {
+  it('첫 설정: 계정 → 이메일 → 완료, 그 뒤 관리자 로그인 (OTP 없음)', async () => {
     admin = new Browser(app);
     expect((await admin.get('/api/admin/setup/status')).body).toEqual({ completed: false, step: 'account' });
-    const acc = await admin.post('/api/admin/setup/account', { username: 'admin', password: 'very-long-password-1' });
-    expect(acc.status).toBe(201);
-    expect(acc.body.qrDataUrl).toMatch(/^data:image\/png/);
-    const secret = new URL(acc.body.otpauthUrl).searchParams.get('secret')!;
-    expect((await admin.post('/api/admin/setup/otp', { otp: '000000' })).status).toBe(400);
-    expect((await admin.post('/api/admin/setup/otp', { otp: authenticator.generate(secret) })).status).toBe(204);
+    expect((await admin.post('/api/admin/setup/account', { username: 'admin', password: 'short' })).status).toBe(400);
+    // 첫 설정을 끝내기 전에는 계정을 다시 만들 수 있다 (비밀번호를 잊은 경우)
+    expect((await admin.post('/api/admin/setup/account', { username: 'admin', password: 'forgotten-password-1' })).status).toBe(204);
+    expect((await admin.post('/api/admin/setup/account', { username: 'admin', password: 'very-long-password-1' })).status).toBe(204);
+    expect((await admin.get('/api/admin/setup/status')).body).toEqual({ completed: false, step: 'smtp' });
     expect((await admin.post('/api/admin/setup/smtp', { host: 'smtp.example.com', port: 587, secure: false, user: 'a@example.com', password: 'app-pass', fromName: '출석체크', testTo: 'me@example.com' })).status).toBe(204);
     expect((await admin.post('/api/admin/setup/complete')).status).toBe(204);
     expect((await admin.post('/api/admin/setup/account', { username: 'x2345', password: 'very-long-password-1' })).status).toBe(409);
 
-    expect((await admin.post('/api/admin/auth/login', { username: 'admin', password: 'wrong-password!!', otp: authenticator.generate(secret) })).status).toBe(401);
-    const login = await admin.post('/api/admin/auth/login', { username: 'admin', password: 'very-long-password-1', otp: authenticator.generate(secret) });
+    expect((await admin.post('/api/admin/auth/login', { username: 'admin', password: 'wrong-password!!' })).status).toBe(401);
+    const login = await admin.post('/api/admin/auth/login', { username: 'admin', password: 'very-long-password-1' });
     expect(login.status).toBe(201);
     expect((await admin.get('/api/me')).body.role).toBe('admin');
     const smtp = await admin.get('/api/admin/settings/smtp');
@@ -219,9 +222,41 @@ describe('출석 전체 흐름', () => {
     const xlsx = await request(app.getHttpServer()).get(`/api/staff/attendance/export?date=${today}&format=xlsx`).set('Cookie', Object.entries(t.cookies).map(([k, v]) => `${k}=${v}`).join('; '));
     expect(xlsx.headers['content-type']).toContain('spreadsheetml');
 
-    // 강의실 코드 화면
-    const code = await t.get(`/api/staff/sessions/${s3}/code`);
-    expect(code.body.code).toBe(roomCodeAt(s3).code);
+    // 강의실 코드 화면은 총관리자만 (인솔자는 404)
+    expect((await t.get(`/api/staff/sessions/${s3}/code`)).status).toBe(404);
+    const code = await admin.get(`/api/admin/sessions/${s3}/code`);
+    expect(code.body).toMatchObject({ code: roomCodeAt(s3).code, enrolled: expect.any(Number) });
+  });
+
+  it('한 컴퓨터(같은 브라우저)에서 총관리자·인솔자·학생이 같이 로그인해도 서로 로그아웃시키지 않음', async () => {
+    const pc = new Browser(app);
+    pc.cookies = { ...admin.cookies }; // 총관리자로 로그인된 PC
+    pc.area = 'staff';
+    await pc.post('/api/auth/staff/login', { schoolId, staffNo: 'S1', name: '김담당' });
+    await pc.post('/api/auth/staff/verify', { schoolCode: '1234' });
+    pc.area = 'student';
+    expect((await pc.post('/api/auth/student/login', { schoolId, studentNo: '20230007', name: '정민재' })).status).toBe(201);
+    expect(Object.keys(pc.cookies).sort()).toEqual(['did', 'sid_a', 'sid_s', 'sid_t']);
+
+    // 각 화면에서 새로고침(GET /api/me) → 자기 역할 그대로
+    pc.area = 'admin';
+    expect((await pc.get('/api/me')).body.role).toBe('admin');
+    pc.area = 'staff';
+    expect((await pc.get('/api/me')).body.role).toBe('staff');
+    pc.area = 'student';
+    expect((await pc.get('/api/me')).body.role).toBe('student');
+
+    // 학생 화면에서 로그아웃해도 인솔자·총관리자는 그대로
+    await pc.post('/api/auth/logout');
+    expect((await pc.get('/api/me')).body.role).toBe('staff'); // 학생 쿠키가 없으면 인솔자 → 화면이 /staff 로 보냄
+    pc.area = 'admin';
+    expect((await pc.get('/api/me')).body.role).toBe('admin');
+
+    // 인솔자 쿠키로는 총관리자 API를 못 쓴다
+    const staffOnly = new Browser(app);
+    staffOnly.cookies = { sid_a: pc.cookies.sid_t };
+    staffOnly.area = 'admin';
+    expect((await staffOnly.get('/api/admin/dashboard')).status).toBe(401);
   });
 
   it('출결 변경: 인솔자 신청 → 총관리자 승인 / 10분 지나면 우선 거절 → 나중에 승인', async () => {
